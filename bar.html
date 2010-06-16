@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>bar</title>
+	<meta name="author" content="pjv">
+	<!-- Date: 2010-06-15 -->
+	<script type="text/javascript">
+        
+        cancel(); // start off hidden
+        safari.self.browserWindow.addEventListener("command", handleCommand, false);
+        safari.self.browserWindow.addEventListener("validate", handleValidate, false);
+                
+        function handleCommand (commandMsg) {
+            switch(commandMsg.command){
+                case "tab_reloader":
+                    self.safari.self.show();
+                default :
+                    //
+            } // switch
+        } //handleCommand
+        
+        function handleValidate (validateMsg) {
+            // show/hide disable button
+            switch(validateMsg.command){
+                case "tab_reloader":
+                    var activeTab = safari.application.activeBrowserWindow.activeTab;
+                    var db = document.getElementById('disable_button');
+                    var cb = document.getElementById('cancel_button');
+                    
+                    if (activeTab.reloadEnable) {
+                        // show disable button
+                        db.style.display = 'inline';
+                        // hide cancel button
+                        cb.style.display = 'none';
+                    }
+                    else {
+                        // hide disable button
+                        db.style.display = 'none';
+                        // show cancel button
+                        cb.style.display = 'inline';
+                    } //else                       
+            } // switch
+        } // handleValidate
+        
+        function reloadTab (activeTab) {
+            var currentURL = activeTab.url;
+            
+            // alert (currentURL);
+            
+            if (currentURL && activeTab.reloadEnable) {
+                activeTab.url = currentURL;
+                
+                // alas, this doesn't really work because loading the URL is async
+                // setTimeout(function() { return activeTab.page.dispatchMessage('setTitleUnread'); },1000);
+            } // if                       
+        } // reloadTab
+        
+        function setDelay(delay) {
+            var activeTab = safari.application.activeBrowserWindow.activeTab;
+            
+            delay = delay * 1000 * 60; // convert to msec
+            
+            activeTab.delay = delay;
+            activeTab.reloadEnable = true;
+            activeTab.timerID = setInterval(function() { return reloadTab(activeTab); },delay);
+                      
+            // hide the bar
+            self.safari.self.hide();
+        } // setDelay
+        
+        function disable () {
+            var activeTab = safari.application.activeBrowserWindow.activeTab;
+            activeTab.reloadEnable = false;
+            clearInterval(activeTab.timerID);
+            // activeTab.page.dispatchMessage("setTitleRead");
+            
+            // hide the bar
+            self.safari.self.hide();
+        } // disable
+        
+        function cancel() {
+            // hide the bar
+            self.safari.self.hide();
+        } // cancel
+
+    </script>
+</head>
+<body> Reload Tab Every: 
+<input type=button value="30 sec" onclick="setDelay(.1)">
+<input type=button value="1 min" onclick="setDelay(1)">
+<input type=button value="2 min" onclick="setDelay(2)">
+<input type=button value="5 min" onclick="setDelay(5)">
+<input type=button value="15 min" onclick="setDelay(15)">
+<input type=button value="30 min" onclick="setDelay(30)">
+<input type=button value="60 min" onclick="setDelay(60)">
+<!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
+<input type=button value="Disable" onclick="disable()" id="disable_button">
+<input type=button value="Cancel" onclick="cancel()" id="cancel_button">
+</body>
+</html>
