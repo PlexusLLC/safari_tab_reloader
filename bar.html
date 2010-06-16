@@ -33,6 +33,9 @@
                     var im = document.getElementById('rt_inactive');
  
                     if (activeTab.reloadEnable) {
+                        document.body.style.padding = "2px";
+                        document.body.style.border = "green 2px solid";
+                        
                         // show disable button
                         db.style.display = 'inline';
 
@@ -42,6 +45,9 @@
                         
                     }
                     else {
+                        document.body.style.padding = "2px";
+                        document.body.style.border = "red 2px solid";
+                        
                         // hide disable button
                         db.style.display = 'none';
 
@@ -96,22 +102,24 @@
     </script>
 </head>
 <body> 
-    Reload Tab Every: 
-    <span id="delay_buttons">
-        <input type=button value="30 sec" onclick="setDelay(.1)">
-        <input type=button value="1 min" onclick="setDelay(1)">
-        <input type=button value="2 min" onclick="setDelay(2)">
-        <input type=button value="5 min" onclick="setDelay(5)">
-        <input type=button value="15 min" onclick="setDelay(15)">
-        <input type=button value="30 min" onclick="setDelay(30)">
-        <input type=button value="60 min" onclick="setDelay(60)">
-    </span>
-    <!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
-    <div align="right" style="float: right">
-        <input type=button value="Hide" onclick="hide()" id="hide_button">
-        <input type=button value="Disable" onclick="disable()" id="disable_button">
-        <span id="rt_active" style="color: white; background: green; padding: 2px;">Active</span>
-        <span id="rt_inactive" style="color: white; background: red; padding: 2px;">Inactive</span>
+    <div id="content" style="padding: 0px 2px 2px 2px;">
+        Reload Tab Every: 
+        <span id="delay_buttons">
+            <input type=button value="30 sec" onclick="setDelay(.1)">
+            <input type=button value="1 min" onclick="setDelay(1)">
+            <input type=button value="2 min" onclick="setDelay(2)">
+            <input type=button value="5 min" onclick="setDelay(5)">
+            <input type=button value="15 min" onclick="setDelay(15)">
+            <input type=button value="30 min" onclick="setDelay(30)">
+            <input type=button value="60 min" onclick="setDelay(60)">
+        </span>
+        <!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
+        <div align="right" style="float: right">
+            <input id="hide_button" type=button value="Hide" onclick="hide()">
+            <input id="disable_button" type=button value="Disable" onclick="disable()">
+            <span id="rt_active" style="color: white; background: green; padding: 2px;">Active</span>
+            <span id="rt_inactive" style="color: white; background: red; padding: 2px;">Inactive</span>
+        </div>
     </div>
 </body>
 </html>

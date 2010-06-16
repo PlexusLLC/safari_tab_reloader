@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Author</key>
-	<string>PLEXUS</string>
+	<string>pjv</string>
 	<key>CFBundleDisplayName</key>
 	<string>TabReloader</string>
 	<key>CFBundleIdentifier</key>
