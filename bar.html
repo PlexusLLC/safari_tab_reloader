@@ -9,9 +9,9 @@
 	<!-- Date: 2010-06-15 -->
 	<script type="text/javascript">
         
-        cancel(); // start off hidden
+        hide(); // start off hidden
         safari.self.browserWindow.addEventListener("command", handleCommand, false);
-        safari.self.browserWindow.addEventListener("validate", handleValidate, false);
+        safari.self.browserWindow.addEventListener("validate", handleValidate, false); 
                 
         function handleCommand (commandMsg) {
             switch(commandMsg.command){
@@ -28,20 +28,27 @@
                 case "tab_reloader":
                     var activeTab = safari.application.activeBrowserWindow.activeTab;
                     var db = document.getElementById('disable_button');
-                    var cb = document.getElementById('cancel_button');
-                    
+                    var hb = document.getElementById('hide_button');
+                    var am = document.getElementById('rt_active');
+                    var im = document.getElementById('rt_inactive');
+ 
                     if (activeTab.reloadEnable) {
                         // show disable button
                         db.style.display = 'inline';
-                        // hide cancel button
-                        cb.style.display = 'none';
+
+                        // show active marker
+                        am.style.display = 'inline';
+                        im.style.display = 'none';
+                        
                     }
                     else {
                         // hide disable button
                         db.style.display = 'none';
-                        // show cancel button
-                        cb.style.display = 'inline';
-                    } //else                       
+
+                        // show inactive marker
+                        am.style.display = 'none';
+                        im.style.display = 'inline';
+                    } // else                       
             } // switch
         } // handleValidate
         
@@ -81,23 +88,30 @@
             self.safari.self.hide();
         } // disable
         
-        function cancel() {
+        function hide() {
             // hide the bar
             self.safari.self.hide();
         } // cancel
 
     </script>
 </head>
-<body> Reload Tab Every: 
-<input type=button value="30 sec" onclick="setDelay(.1)">
-<input type=button value="1 min" onclick="setDelay(1)">
-<input type=button value="2 min" onclick="setDelay(2)">
-<input type=button value="5 min" onclick="setDelay(5)">
-<input type=button value="15 min" onclick="setDelay(15)">
-<input type=button value="30 min" onclick="setDelay(30)">
-<input type=button value="60 min" onclick="setDelay(60)">
-<!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
-<input type=button value="Disable" onclick="disable()" id="disable_button">
-<input type=button value="Cancel" onclick="cancel()" id="cancel_button">
+<body> 
+    Reload Tab Every: 
+    <span id="delay_buttons">
+        <input type=button value="30 sec" onclick="setDelay(.1)">
+        <input type=button value="1 min" onclick="setDelay(1)">
+        <input type=button value="2 min" onclick="setDelay(2)">
+        <input type=button value="5 min" onclick="setDelay(5)">
+        <input type=button value="15 min" onclick="setDelay(15)">
+        <input type=button value="30 min" onclick="setDelay(30)">
+        <input type=button value="60 min" onclick="setDelay(60)">
+    </span>
+    <!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
+    <div align="right" style="float: right">
+        <input type=button value="Hide" onclick="hide()" id="hide_button">
+        <input type=button value="Disable" onclick="disable()" id="disable_button">
+        <span id="rt_active" style="color: white; background: green; padding: 2px;">Active</span>
+        <span id="rt_inactive" style="color: white; background: red; padding: 2px;">Inactive</span>
+    </div>
 </body>
 </html>
