@@ -12,11 +12,22 @@
         hide(); // start off hidden
         safari.self.browserWindow.addEventListener("command", handleCommand, false);
         safari.self.browserWindow.addEventListener("validate", handleValidate, false); 
+        
+        var hangAroundTabs = [];
+        
+        // function pruneHangArounds () {
+        //     for (tab in hangAroundTabs) {
+        //         if (tab ! in safari.self.browserWindow.tabs) // doesn't work -- no 'in' with objects
+        //             hangAroundTabs.splice[tab,1];
+        //     }
+        // }
+        
+        // setInterval(pruneHangArounds,600000) // every 10 minutes
                 
         function handleCommand (commandMsg) {
             switch(commandMsg.command){
                 case "tab_reloader":
-                    self.safari.self.show();
+                    safari.self.show();
                 default :
                     //
             } // switch
@@ -26,7 +37,7 @@
             // show/hide disable button
             switch(validateMsg.command){
                 case "tab_reloader":
-                    var activeTab = safari.application.activeBrowserWindow.activeTab;
+                    var activeTab = safari.self.browserWindow.activeTab;
                     var db = document.getElementById('disable_button');
                     var hb = document.getElementById('hide_button');
                     var am = document.getElementById('rt_active');
@@ -72,31 +83,40 @@
         } // reloadTab
         
         function setDelay(delay) {
-            var activeTab = safari.application.activeBrowserWindow.activeTab;
+            var activeTab = safari.self.browserWindow.activeTab;
             
             delay = delay * 1000 * 60; // convert to msec
+            
+            // clear old timer if it exists
+            if (activeTab.timerID)
+                clearInterval(activeTab.timerID);
             
             activeTab.delay = delay;
             activeTab.reloadEnable = true;
             activeTab.timerID = setInterval(function() { return reloadTab(activeTab); },delay);
+            
+            // add to the list of tabs we are paying attention to
+            // solves this bug: https://devforums.apple.com/message/233887
+            // if (! activeTab in hangAroundTabs)  // doesn't work -- no 'in' with objects
+            hangAroundTabs.push(activeTab);
                       
             // hide the bar
-            self.safari.self.hide();
+            safari.self.hide();
         } // setDelay
         
         function disable () {
-            var activeTab = safari.application.activeBrowserWindow.activeTab;
+            var activeTab = safari.self.browserWindow.activeTab;
             activeTab.reloadEnable = false;
             clearInterval(activeTab.timerID);
             // activeTab.page.dispatchMessage("setTitleRead");
             
             // hide the bar
-            self.safari.self.hide();
+            safari.self.hide();
         } // disable
         
         function hide() {
             // hide the bar
-            self.safari.self.hide();
+            safari.self.hide();
         } // cancel
 
     </script>
@@ -105,7 +125,7 @@
     <div id="content" style="padding: 0px 2px 2px 2px;">
         Reload Tab Every: 
         <span id="delay_buttons">
-            <input type=button value="30 sec" onclick="setDelay(.1)">
+            <input type=button value="30 sec" onclick="setDelay(.5)">
             <input type=button value="1 min" onclick="setDelay(1)">
             <input type=button value="2 min" onclick="setDelay(2)">
             <input type=button value="5 min" onclick="setDelay(5)">

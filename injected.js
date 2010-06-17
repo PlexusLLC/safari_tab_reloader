@@ -1,9 +1,14 @@
 safari.self.addEventListener("message", handleMessage, false);
 
-// alas, can't use these function because reloading the page is async and
-// we can't easily know when the page has finished reloading without blocking
-// it would be nice if apple would let me put a little img on the tab.
+// here we have a monstrous hack to put an indication on the tab of it being unread.
+// it would be nice if apple, in their corporate glory,
+// would let us play with the chrome of the tabs so i could put a little img on it.
 // it would be a tasteful little red dot on the right-hand side...
+
+// well, i'll leave this in here in case anyone wants to pursue it, but it turns out that
+// apple is also not exposing events like clicking on a tab to the extension api
+// so there is also no way to mark the tab as read after the user clicks on it. baaahhh.
+
 
 function setTitleUnread() {
     // if not already, prepend title with [*]

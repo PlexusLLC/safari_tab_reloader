@@ -11,7 +11,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.5</string>
+	<string>0.4</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>Chrome</key>
@@ -42,15 +42,10 @@
 	<key>Content</key>
 	<dict>
 		<key>Scripts</key>
-		<dict>
-			<key>End</key>
-			<array>
-				<string>injected.js</string>
-			</array>
-		</dict>
+		<dict/>
 	</dict>
 	<key>Description</key>
-	<string>Independently timed, automatic reloading of browser windows.</string>
+	<string>Independently timed, automatic reloading of Safari tabs.</string>
 	<key>ExtensionInfoDictionaryVersion</key>
 	<string>1.0</string>
 	<key>Permissions</key>
@@ -63,7 +58,9 @@
 			<string>All</string>
 		</dict>
 	</dict>
+	<key>Update Manifest URL</key>
+	<string>http://pjv.sofasage.com/reloader/safari-extensions-manifest.plist</string>
 	<key>Website</key>
-	<string>http://bitbucket.org/pjv/tabreloader.safariextension/wiki/Home</string>
+	<string>http://pjv.sofasage.com/reloader</string>
 </dict>
 </plist>
