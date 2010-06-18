@@ -7,12 +7,14 @@
 	<title>bar</title>
 	<meta name="author" content="pjv">
 	<!-- Date: 2010-06-15 -->
+	<link rel="stylesheet" href="./sexybuttons.css" type="text/css">
 	<script type="text/javascript">
         
         hide(); // start off hidden
         safari.self.browserWindow.addEventListener("command", handleCommand, false);
         safari.self.browserWindow.addEventListener("validate", handleValidate, false); 
         
+        var sexyButtons = document.getElementsByTagName("button");
         var hangAroundTabs = [];
         
         // function pruneHangArounds () {
@@ -42,29 +44,31 @@
                     var hb = document.getElementById('hide_button');
                     var am = document.getElementById('rt_active');
                     var im = document.getElementById('rt_inactive');
+                    var cd = document.getElementById(activeTab.buttonID);
+                    
+                    resetButtonColors();
  
                     if (activeTab.reloadEnable) {
-                        document.body.style.padding = "2px";
-                        document.body.style.border = "green 2px solid";
                         
                         // show disable button
-                        db.style.display = 'inline';
+                        db.style.display = 'inline-block';
 
                         // show active marker
-                        am.style.display = 'inline';
+                        am.style.display = 'inline-block';
                         im.style.display = 'none';
+                        
+                        // current delay green button
+                        cd.className = "sexybutton sexysimple sexysmall sexygreen";
                         
                     }
                     else {
-                        document.body.style.padding = "2px";
-                        document.body.style.border = "red 2px solid";
                         
                         // hide disable button
                         db.style.display = 'none';
 
                         // show inactive marker
                         am.style.display = 'none';
-                        im.style.display = 'inline';
+                        im.style.display = 'inline-block';
                     } // else                       
             } // switch
         } // handleValidate
@@ -82,10 +86,15 @@
             } // if                       
         } // reloadTab
         
-        function setDelay(delay) {
+        function resetButtonColors () {
+            for (i=0;i<sexyButtons.length;i++)
+                sexyButtons[i].className = "sexybutton sexysimple sexysmall";
+        }
+        
+        function setDelay(delay,buttonID) {
             var activeTab = safari.self.browserWindow.activeTab;
             
-            delay = delay * 1000 * 60; // convert to msec
+            delay = delay * 1000 * 60; // convert to msec {yeah, yeah, aka 60,000}
             
             // clear old timer if it exists
             if (activeTab.timerID)
@@ -94,6 +103,9 @@
             activeTab.delay = delay;
             activeTab.reloadEnable = true;
             activeTab.timerID = setInterval(function() { return reloadTab(activeTab); },delay);
+            
+            resetButtonColors();            
+            activeTab.buttonID = buttonID;
             
             // add to the list of tabs we are paying attention to
             // solves this bug: https://devforums.apple.com/message/233887
@@ -107,6 +119,8 @@
         function disable () {
             var activeTab = safari.self.browserWindow.activeTab;
             activeTab.reloadEnable = false;
+            activeTab.delay = null;
+            activeTab.buttonID = null;
             clearInterval(activeTab.timerID);
             // activeTab.page.dispatchMessage("setTitleRead");
             
@@ -121,25 +135,25 @@
 
     </script>
 </head>
-<body> 
-    <div id="content" style="padding: 0px 2px 2px 2px;">
+<body > 
+    <div id="content" >
+        <span id="rt_active" style="color: green;">&bull;</span>
+        <span id="rt_inactive" style="color: red;">&bull;</span>
         Reload Tab Every: 
-        <span id="delay_buttons">
-            <input type=button value="30 sec" onclick="setDelay(.5)">
-            <input type=button value="1 min" onclick="setDelay(1)">
-            <input type=button value="2 min" onclick="setDelay(2)">
-            <input type=button value="5 min" onclick="setDelay(5)">
-            <input type=button value="15 min" onclick="setDelay(15)">
-            <input type=button value="30 min" onclick="setDelay(30)">
-            <input type=button value="60 min" onclick="setDelay(60)">
-        </span>
-        <!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
-        <div align="right" style="float: right">
-            <input id="hide_button" type=button value="Hide" onclick="hide()">
-            <input id="disable_button" type=button value="Disable" onclick="disable()">
-            <span id="rt_active" style="color: white; background: green; padding: 2px;">Active</span>
-            <span id="rt_inactive" style="color: white; background: red; padding: 2px;">Inactive</span>
+        <div id="delay_buttons" style="display: inline-block; position: relative; bottom: 3px">
+            <button id="b1" class="sexybutton sexysimple sexysmall" value="30 sec" onclick="setDelay(.5,'b1')">30 Sec</button>
+            <button id="b2" class="sexybutton sexysimple sexysmall" value="1 min" onclick="setDelay(1,'b2')">1 min</button>
+            <button id="b3" class="sexybutton sexysimple sexysmall" value="2 min" onclick="setDelay(2,'b3')">2 min</button>
+            <button id="b4" class="sexybutton sexysimple sexysmall" value="5 min" onclick="setDelay(5,'b4')">5 min</button>
+            <button id="b5" class="sexybutton sexysimple sexysmall" value="15 min" onclick="setDelay(15,'b5')">15 min</button>
+            <button id="b6" class="sexybutton sexysimple sexysmall" value="30 min" onclick="setDelay(30,'b6')">30 min</button>
+            <button id="b7" class="sexybutton sexysimple sexysmall" value="60 min" onclick="setDelay(60,'b7')">60 min</button>
         </div>
-    </div>
+        <!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
+        <div style="float: right; display: inline-block; position: relative; bottom: 3px">
+            <button id="hide_button" class="sexybutton sexysimple sexysmall" onclick="hide()">Hide</button>
+            <button id="disable_button" class="sexybutton sexysimple sexysmall" onclick="disable()">Disable</button>
+        </div>
+    </div> <!-- content -->
 </body>
 </html>
