@@ -13,7 +13,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>0.6</string>
 	<key>CFBundleVersion</key>
-	<string>4</string>
+	<string>5</string>
 	<key>Chrome</key>
 	<dict>
 		<key>Bars</key>
@@ -31,18 +31,42 @@
 		<array>
 			<dict>
 				<key>Command</key>
-				<string>tab_reloader</string>
+				<string>open_from_menu</string>
 				<key>Identifier</key>
 				<string>tab_reloader_menu</string>
 				<key>Title</key>
 				<string>Tab Reloader</string>
 			</dict>
 		</array>
+		<key>Toolbar Items</key>
+		<array>
+			<dict>
+				<key>Command</key>
+				<string>open_from_button</string>
+				<key>Identifier</key>
+				<string>tab_reloader_button</string>
+				<key>Image</key>
+				<string>images/tb_button.png</string>
+				<key>Include By Default</key>
+				<true/>
+				<key>Label</key>
+				<string>Tab Reloader</string>
+				<key>Palette Label</key>
+				<string>Tab Reloader</string>
+				<key>Tool Tip</key>
+				<string>Open Tab Reloader Bar</string>
+			</dict>
+		</array>
 	</dict>
 	<key>Content</key>
 	<dict>
 		<key>Scripts</key>
-		<dict/>
+		<dict>
+			<key>End</key>
+			<array>
+				<string>injected.js</string>
+			</array>
+		</dict>
 	</dict>
 	<key>Description</key>
 	<string>Independently timed, automatic reloading of Safari tabs.</string>
