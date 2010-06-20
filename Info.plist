@@ -27,17 +27,6 @@
 				<string>Tab Reloader</string>
 			</dict>
 		</array>
-		<key>Context Menu Items</key>
-		<array>
-			<dict>
-				<key>Command</key>
-				<string>toggle_from_menu</string>
-				<key>Identifier</key>
-				<string>tab_reloader_menu</string>
-				<key>Title</key>
-				<string>Tab Reloader</string>
-			</dict>
-		</array>
 		<key>Toolbar Items</key>
 		<array>
 			<dict>

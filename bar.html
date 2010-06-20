@@ -72,9 +72,12 @@
                         var currentURL = _activeTab.url;
                         if (! currentURL) {
                             // disable the menu item and the toolbar button
+                            validateMsg.target.disabled = true;
                             hide();
                             return;
                         } // if
+                        else
+                            validateMsg.target.disabled = false;
                         
                         if (safari.self.visible)
                             updateBar(_activeTab);
