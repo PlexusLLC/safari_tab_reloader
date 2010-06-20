@@ -31,7 +31,7 @@
 		<array>
 			<dict>
 				<key>Command</key>
-				<string>open_from_menu</string>
+				<string>toggle_from_menu</string>
 				<key>Identifier</key>
 				<string>tab_reloader_menu</string>
 				<key>Title</key>
@@ -42,7 +42,7 @@
 		<array>
 			<dict>
 				<key>Command</key>
-				<string>open_from_button</string>
+				<string>toggle_from_button</string>
 				<key>Identifier</key>
 				<string>tab_reloader_button</string>
 				<key>Image</key>
@@ -54,7 +54,7 @@
 				<key>Palette Label</key>
 				<string>Tab Reloader</string>
 				<key>Tool Tip</key>
-				<string>Open Tab Reloader Bar</string>
+				<string>Open / Close Tab Reloader Bar</string>
 			</dict>
 		</array>
 	</dict>

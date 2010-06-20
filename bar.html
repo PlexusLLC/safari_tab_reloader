@@ -46,19 +46,25 @@
         
         function handleCommand (commandMsg) {
             switch(commandMsg.command){
-                case "open_from_menu":
-                case "open_from_button":
+                case "toggle_from_menu":
+                case "toggle_from_button":
                     _activeTab = safari.self.browserWindow.activeTab;
-                    updateBar(_activeTab);
-                    safari.self.show();
+                    if (safari.self.visible){
+                        hide();
+                        return;
+                    }
+                    else {
+                        updateBar(_activeTab);
+                        safari.self.show();
+                    }
                     break;
             } // switch
         } //handleCommand
         
         function handleValidate (validateMsg) {
             switch(validateMsg.command){
-                case "open_from_menu":
-                case "open_from_button":                
+                case "toggle_from_menu":
+                case "toggle_from_button":                
                     if ( !(_activeTab === safari.self.browserWindow.activeTab)) {
                         _activeTab = safari.self.browserWindow.activeTab;
                         
@@ -66,10 +72,12 @@
                         var currentURL = _activeTab.url;
                         if (! currentURL) {
                             // disable the menu item and the toolbar button
-                            // return;
+                            hide();
+                            return;
                         } // if
                         
-                        updateBar(_activeTab);
+                        if (safari.self.visible)
+                            updateBar(_activeTab);
                         _activeTab.page.dispatchMessage("setTitleRead");
                     } // if
                     break;   
