@@ -5,7 +5,7 @@
 safari.self.addEventListener("message", handleMessage, false);
 window.addEventListener("load", handleLoad, false);
 
-var marker = "\u2666 ";
+var marker = "\u2666 "; // that's octal for "diamond"
 var markerStatus = null;
 
 function handleLoad(){
@@ -24,9 +24,6 @@ function setTitleRead() {
     myTitle = document.title;
     if (myTitle.substr(0,2) == marker) {
         document.title = myTitle.substr(2,myTitle.length);
-    }
-    else {
-        document.title = myTitle;
     }
 }
     

@@ -10,6 +10,10 @@
 	<link rel="stylesheet" href="./sexybuttons.css" type="text/css">
 	<script type="text/javascript">
         
+        // TODO custom delay time
+        // TODO prefs to always auto-reload specified URLs
+        // TODO show last updated time (and countdown to next update) in bar
+        
         hide(); // start off hidden
         safari.self.browserWindow.addEventListener("command", handleCommand, false);
         safari.self.browserWindow.addEventListener("validate", handleValidate, false); 
@@ -65,20 +69,20 @@
             switch(validateMsg.command){
                 case "toggle_from_menu":
                 case "toggle_from_button":                
+                    // disable tab reloader and return if no URL in tab
+                    var currentURL = safari.self.browserWindow.activeTab.url;
+                    if (! currentURL) {
+                        // disable the menu item and the toolbar button
+                        validateMsg.target.disabled = true;
+                        hide();
+                        return;
+                    } // if
+                    else
+                        validateMsg.target.disabled = false;
+                    
+                    // update bar if necessary
                     if ( !(_activeTab === safari.self.browserWindow.activeTab)) {
                         _activeTab = safari.self.browserWindow.activeTab;
-                        
-                        // disable tab reloader and return if no URL in tab
-                        var currentURL = _activeTab.url;
-                        if (! currentURL) {
-                            // disable the menu item and the toolbar button
-                            validateMsg.target.disabled = true;
-                            hide();
-                            return;
-                        } // if
-                        else
-                            validateMsg.target.disabled = false;
-                        
                         if (safari.self.visible)
                             updateBar(_activeTab);
                         _activeTab.page.dispatchMessage("setTitleRead");
@@ -127,7 +131,7 @@
                         
             if (currentURL && tab.reloadEnable) {
                 tab.url = currentURL;
-                
+                // console.log("reloading: " + tab.title);
             } // if                       
         } // reloadTab
         
@@ -137,9 +141,7 @@
         }
         
         function setDelay(delay,buttonID) {
-            tab = safari.self.browserWindow.activeTab;
-            _activeTab = tab;
-            
+            var tab = safari.self.browserWindow.activeTab;            
             delay = delay * 1000 * 60; // convert to msec {yeah, yeah, aka 60,000}
             
             // clear old timer if it exists
