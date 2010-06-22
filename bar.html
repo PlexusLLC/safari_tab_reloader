@@ -20,17 +20,19 @@
         safari.self.browserWindow.addEventListener("message", handleMessage, false); 
         
         var sexyButtons = document.getElementsByTagName("button");
-        var hangAroundTabs = {};
+        var hangAroundTabs = [];
         var _activeTab = safari.self.browserWindow.activeTab;
         
-        // function pruneHangArounds () {
-        //     for (tab in hangAroundTabs) {
-        //         if (tab ! in safari.self.browserWindow.tabs) // doesn't work -- no 'in' with objects
-        //             hangAroundTabs.splice[tab,1];
-        //     }
-        // }
-        
-        // setInterval(pruneHangArounds,600000) // every 10 minutes
+        function pruneHangArounds () {
+            var tmp = [];
+            
+            for (var i = 0; i < hangAroundTabs.length; i++) {
+                if (hangAroundTabs[i].timerID && hangAroundTabs[i].browserWindow)
+                    tmp.push(hangAroundTabs[i]);
+            }
+            hangAroundTabs = tmp;
+            tmp = null;
+        } // pruneHangArounds      
                         
         function handleMessage (msgEvent) {
             switch(msgEvent.name){
@@ -71,6 +73,9 @@
                 case "toggle_from_button":                
                     var tab = safari.self.browserWindow.activeTab;
                     var currentURL = tab.url;
+                    
+                    // prune out list of tabs in case we're here because of a closed tab
+                    pruneHangArounds();
                     
                     // test for user navigating to a new URL in a reloading tab and disable reloading if so
                     if (tab.timerID && (tab.url !== tab.originalURL))
@@ -151,8 +156,10 @@
             delay = delay * 1000 * 60; // convert to msec {yeah, yeah, aka 60,000}
             
             // clear old timer if it exists
-            if (tab.timerID)
+            if (tab.timerID) {
                 clearInterval(tab.timerID);
+            }
+                
             
             resetButtonColors();            
             tab.buttonID = buttonID;
@@ -163,10 +170,7 @@
             
             // add to the list of tabs we are paying attention to
             // solves this bug: https://devforums.apple.com/message/233887
-            // use the timerID to index the array so we can find it fast
-            
-            if (! hangAroundTabs[tab.timerID])
-                hangAroundTabs[tab.timerID] = tab;
+            hangAroundTabs.push(tab);
                       
             // hide the bar
             safari.self.hide();
@@ -179,8 +183,8 @@
             tab.buttonID = null;
             tab.originalURL = null;
             clearInterval(tab.timerID);
-            hangAroundTabs[tab.timerID] = null;
             tab.timerID = null;
+            pruneHangArounds();
 
             // hide the bar
             safari.self.hide();
