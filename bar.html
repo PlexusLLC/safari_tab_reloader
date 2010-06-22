@@ -48,7 +48,7 @@
                     updateBar(msgEvent.target);
                     break;
             } // switch
-        }
+        } //handleMessage
         
         function handleCommand (commandMsg) {
             switch(commandMsg.command){
@@ -99,8 +99,6 @@
                         _activeTab.page.dispatchMessage("setTitleRead");
                     } // if
                     break;   
-                default:
-                    //
             } // switch
         } // handleValidate
         
@@ -160,7 +158,6 @@
                 clearInterval(tab.timerID);
             }
                 
-            
             resetButtonColors();            
             tab.buttonID = buttonID;
             tab.delay = delay;
@@ -193,7 +190,7 @@
         function hide() {
             // hide the bar
             safari.self.hide();
-        } // cancel
+        } // hide
 
     </script>
 </head>
