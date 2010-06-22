@@ -17,11 +17,13 @@
         hide(); // start off hidden
         safari.self.browserWindow.addEventListener("command", handleCommand, false);
         safari.self.browserWindow.addEventListener("validate", handleValidate, false); 
-        safari.self.browserWindow.addEventListener("message", handleMessage, false); 
+        safari.self.browserWindow.addEventListener("message", handleMessage, false);
+        safari.extension.settings.addEventListener("change", handleChange, false); 
         
         var sexyButtons = document.getElementsByTagName("button");
         var hangAroundTabs = [];
         var _activeTab = safari.self.browserWindow.activeTab;
+        var autoHide = safari.extension.settings.hide_bar;
         
         function pruneHangArounds () {
             var tmp = [];
@@ -34,6 +36,15 @@
             tmp = null;
         } // pruneHangArounds      
                         
+        function handleChange (chgEvent){
+            switch(chgEvent.key){
+                case "hide_bar":
+                    autoHide = chgEvent.newValue;
+                    break;
+                default:
+            }
+        } // handleChange
+        
         function handleMessage (msgEvent) {
             switch(msgEvent.name){
                 case "sendMarkerStatus":                                          
@@ -170,7 +181,10 @@
             hangAroundTabs.push(tab);
                       
             // hide the bar
-            safari.self.hide();
+            if (autoHide)
+                hide();
+            else
+                updateBar(tab);
         } // setDelay
         
         function disable (tab) {
@@ -187,7 +201,10 @@
             pruneHangArounds();
 
             // hide the bar
-            safari.self.hide();
+            if (autoHide)
+                hide();
+            else
+                updateBar(tab);
         } // disable
         
         function hide() {
