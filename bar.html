@@ -7,7 +7,8 @@
 	<title>bar</title>
 	<meta name="author" content="pjv">
 	<!-- Date: 2010-06-15 -->
-	<link rel="stylesheet" href="./sexybuttons.css" type="text/css">
+	<link rel="stylesheet" href="./sexybuttons.css" type="text/css">	
+	
 	<script type="text/javascript">
         
         // TODO custom delay time
@@ -24,6 +25,7 @@
         var hangAroundTabs = [];
         var _activeTab = safari.self.browserWindow.activeTab;
         var autoHide = safari.extension.settings.hide_bar;
+        var timerDisplayID;
         
         function pruneHangArounds () {
             var tmp = [];
@@ -33,7 +35,7 @@
                     tmp.push(hangAroundTabs[i]);
             }
             hangAroundTabs = tmp;
-            tmp = null;
+            delete tmp;
         } // pruneHangArounds      
                         
         function handleChange (chgEvent){
@@ -102,16 +104,82 @@
                     else
                         validateMsg.target.disabled = false;
                     
-                    // update bar if necessary
+                    // set title read if necessary
                     if ( !(_activeTab === safari.self.browserWindow.activeTab)) {
                         _activeTab = safari.self.browserWindow.activeTab;
-                        if (safari.self.visible)
-                            updateBar(_activeTab);
                         _activeTab.page.dispatchMessage("setTitleRead");
                     } // if
+                    
+                    // update bar if necessary
+                    if (safari.self.visible)
+                        updateBar(tab);
                     break;   
             } // switch
         } // handleValidate
+        
+        function displayLastReloadTime(tab){
+            var lastHours = tab.reloadTime.getHours();
+            var lastMinutes = tab.reloadTime.getMinutes();
+            var lastSeconds = tab.reloadTime.getSeconds();
+            var lastAorP;
+            
+            if (lastHours >= 12)
+                lastAorP = "pm";
+            else
+                lastAorP = "am";
+                
+            if (lastHours >= 13)
+                lastHours -= 12;
+            
+            if (lastMinutes < 10)
+                lastMinutes = "0" + lastMinutes;
+            
+            if (lastSeconds < 10)
+                lastSeconds = "0" + lastSeconds;
+            
+            var lastUpdate = lastHours + ":" + lastMinutes + ":" + lastSeconds + " " + lastAorP + " | ";
+            
+            document.getElementById('last_update').innerHTML = lastUpdate;
+        }
+        
+        function displayCountdown(tab){
+            // var lastHours = tab.reloadTime.getHours();
+            // var lastMinutes = tab.reloadTime.getMinutes();
+            // var lastSeconds = tab.reloadTime.getSeconds();
+            // var nextReload = new Date();
+            // var nextHours;
+            // var nextMinutes;
+            // var nextSeconds;    
+            //             
+            // nextReload.setTime(Math.ceil(tab.reloadTime.getTime() + tab.delay));        
+            // 
+            // nextHours = nextReload.getHours() - lastHours;
+            // nextMinutes = nextReload.getMinutes() - lastMinutes;
+            // nextSeconds = nextReload.getSeconds() - lastSeconds;
+            // 
+            // delete nextReload;
+            //     
+            // if (nextHours >= 13)
+            //     nextHours -= 12;
+            //     
+            // if (nextHours < 10)
+            //     nextHours = "0" + nextHours;
+            // 
+            // if (nextMinutes < 10)
+            //     nextMinutes = "0" + nextMinutes;
+            // 
+            // if (nextSeconds < 10)
+            //     nextSeconds = "0" + nextSeconds;
+            // 
+            // var nextUpdate = nextHours + ":" + nextMinutes + ":" + nextSeconds;
+            // 
+            // var display = "[ " + lastUpdate + " | " + nextUpdate + " ]";
+            // 
+            // document.getElementById('last_update').innerHTML = display;
+            // 
+            // clearTimeout(timerDisplayID);
+            // timerDisplayID = setTimeout(function(){return displayReloadTime(tab);},1000);
+        }
         
         function updateBar (tab) {
             var db = document.getElementById('disable_button');
@@ -134,6 +202,10 @@
                 // current delay green button
                 cd.className = "sexybutton sexysimple sexysmall sexygreen";
                 
+                // last update and countdown display
+                if (tab.reloadTime)
+                    displayLastReloadTime(tab);
+                    
             } // if
             else {
                 
@@ -143,6 +215,10 @@
                 // show inactive marker
                 am.style.display = 'none';
                 im.style.display = 'inline-block';
+                
+                // last update and countdown display
+                document.getElementById('last_update').innerHTML = "";
+                document.getElementById('next_update').innerHTML = "";
             } // else
         } // updateBar
         
@@ -151,7 +227,8 @@
                         
             if (currentURL && tab.reloadEnabled) {
                 tab.url = currentURL;
-                // console.log("reloading: " + tab.title);
+                tab.reloadTime = new Date();
+                updateBar();
             } // if                       
         } // reloadTab
         
@@ -174,6 +251,7 @@
             tab.delay = delay;
             tab.reloadEnabled = true;
             tab.originalURL = tab.url;
+            tab.reloadTime = null;
             tab.timerID = setInterval(function() { return reloadTab(tab); },delay);
             
             // add to the list of tabs we are paying attention to
@@ -216,8 +294,8 @@
 </head>
 <body > 
     <div id="content" >
-        <span id="rt_active" style="color: green;">&bull;</span>
-        <span id="rt_inactive" style="color: red;">&bull;</span>
+        <span id="rt_active" style="color: #59a901;">&diams;</span>
+        <span id="rt_inactive" style="color: red;">&diams;</span>
         Reload Tab Every: 
         <div id="delay_buttons" style="display: inline-block; position: relative; bottom: 3px">
             <button id="b1" class="sexybutton sexysimple sexysmall" value="30 sec" onclick="setDelay(.5,'b1')">30 Sec</button>
@@ -229,7 +307,12 @@
             <button id="b7" class="sexybutton sexysimple sexysmall" value="60 min" onclick="setDelay(60,'b7')">60 min</button>
         </div>
         <!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
+        
         <div style="float: right; display: inline-block; position: relative; bottom: 3px">
+            <span id="update_display" style="display: inline-block; position: relative; bottom: -2px; color: #ffff99; font: 'Lucida Grande', Arial, 'Helvetica Neue', Helvetica; font-size: 10px; font-weight: normal;">[ 
+                <span id="last_update"></span>
+                <span id="next_update"></span> ]
+            </span>
             <button id="hide_button" class="sexybutton sexysimple sexysmall" onclick="hide()">Hide</button>
             <button id="disable_button" class="sexybutton sexysimple sexysmall" onclick="disable()">Disable</button>
         </div>
