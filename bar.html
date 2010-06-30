@@ -143,42 +143,54 @@
         }
         
         function displayCountdown(tab){
-            // var lastHours = tab.reloadTime.getHours();
-            // var lastMinutes = tab.reloadTime.getMinutes();
-            // var lastSeconds = tab.reloadTime.getSeconds();
-            // var nextReload = new Date();
-            // var nextHours;
-            // var nextMinutes;
-            // var nextSeconds;    
-            //             
-            // nextReload.setTime(Math.ceil(tab.reloadTime.getTime() + tab.delay));        
-            // 
-            // nextHours = nextReload.getHours() - lastHours;
-            // nextMinutes = nextReload.getMinutes() - lastMinutes;
-            // nextSeconds = nextReload.getSeconds() - lastSeconds;
-            // 
-            // delete nextReload;
-            //     
-            // if (nextHours >= 13)
-            //     nextHours -= 12;
-            //     
-            // if (nextHours < 10)
-            //     nextHours = "0" + nextHours;
-            // 
-            // if (nextMinutes < 10)
-            //     nextMinutes = "0" + nextMinutes;
-            // 
-            // if (nextSeconds < 10)
-            //     nextSeconds = "0" + nextSeconds;
-            // 
-            // var nextUpdate = nextHours + ":" + nextMinutes + ":" + nextSeconds;
-            // 
-            // var display = "[ " + lastUpdate + " | " + nextUpdate + " ]";
-            // 
-            // document.getElementById('last_update').innerHTML = display;
-            // 
-            // clearTimeout(timerDisplayID);
-            // timerDisplayID = setTimeout(function(){return displayReloadTime(tab);},1000);
+            var reloadTime = tab.reloadTime;
+            if (! reloadTime)
+                reloadTime = new Date();
+
+            var nextReload = new Date();    
+                        
+            nextReload.setTime(reloadTime.getTime() + tab.delay);  
+            
+            var now = new Date();      
+            
+            timeLeft = nextReload.getTime() - now.getTime();
+            
+            delete nextReload;
+            delete reloadTime;
+            delete now;
+            
+            days=0;hours=0;mins=0;secs=0;
+
+    		timeLeft = Math.floor(timeLeft/1000);//kill the "milliseconds" so just secs
+
+    		days=Math.floor(timeLeft/86400);//days
+    		
+    		timeLeft=timeLeft%86400;
+    		hours=Math.floor(timeLeft/3600);//hours
+    		
+    		timeLeft=timeLeft%3600;
+    		mins=Math.floor(timeLeft/60);//minutes
+    		
+    		timeLeft=timeLeft%60;
+    		secs=Math.floor(timeLeft);//seconds
+                            
+            if (hours >= 13)
+                hours -= 12;
+                
+            if (hours < 10)
+                hours = "0" + hours;
+            
+            if (mins < 10)
+                mins = "0" + mins;
+            
+            if (secs < 10)
+                secs = "0" + secs;
+            
+            var nextUpdate = hours + ":" + mins + ":" + secs;
+            
+            document.getElementById('next_update').innerHTML = nextUpdate;
+            
+            timerDisplayID = setTimeout(function() {return displayCountdown(tab);},1000);
         }
         
         function updateBar (tab) {
@@ -203,9 +215,14 @@
                 cd.className = "sexybutton sexysimple sexysmall sexygreen";
                 
                 // last update and countdown display
-                if (tab.reloadTime)
+                document.getElementById('display_begin').innerHTML = "[ ";
+                document.getElementById('display_end').innerHTML = " ]";
+                clearTimeout(timerDisplayID);
+                displayCountdown(tab);
+                
+                if (tab.reloadTime){
                     displayLastReloadTime(tab);
-                    
+                }    
             } // if
             else {
                 
@@ -217,8 +234,11 @@
                 im.style.display = 'inline-block';
                 
                 // last update and countdown display
+                clearTimeout(timerDisplayID);
                 document.getElementById('last_update').innerHTML = "";
                 document.getElementById('next_update').innerHTML = "";
+                document.getElementById('display_begin').innerHTML = "";
+                document.getElementById('display_end').innerHTML = "";
             } // else
         } // updateBar
         
@@ -228,7 +248,7 @@
             if (currentURL && tab.reloadEnabled) {
                 tab.url = currentURL;
                 tab.reloadTime = new Date();
-                updateBar();
+                //updateBar();
             } // if                       
         } // reloadTab
         
@@ -251,12 +271,15 @@
             tab.delay = delay;
             tab.reloadEnabled = true;
             tab.originalURL = tab.url;
-            tab.reloadTime = null;
+            tab.reloadTime = new Date();
             tab.timerID = setInterval(function() { return reloadTab(tab); },delay);
             
             // add to the list of tabs we are paying attention to
             // solves this bug: https://devforums.apple.com/message/233887
             hangAroundTabs.push(tab);
+            
+            // start countdown timer
+            //displayCountdown(tab);
                       
             // hide the bar
             if (autoHide)
@@ -275,6 +298,7 @@
             tab.buttonID = null;
             tab.originalURL = null;
             clearInterval(tab.timerID);
+            clearTimeout(timerDisplayID);
             tab.timerID = null;
             pruneHangArounds();
 
@@ -309,9 +333,11 @@
         <!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
         
         <div style="float: right; display: inline-block; position: relative; bottom: 3px">
-            <span id="update_display" style="display: inline-block; position: relative; bottom: -2px; color: #ffff99; font: 'Lucida Grande', Arial, 'Helvetica Neue', Helvetica; font-size: 10px; font-weight: normal;">[ 
+            <span id="update_display" style="display: inline-block; position: relative; bottom: -2px; color: #ffff99; font: 'Lucida Grande', Arial, 'Helvetica Neue', Helvetica; font-size: 10px; font-weight: normal;">
+                <span id="display_begin"></span>
                 <span id="last_update"></span>
-                <span id="next_update"></span> ]
+                <span id="next_update"></span>
+                <span id="display_end"></span>
             </span>
             <button id="hide_button" class="sexybutton sexysimple sexysmall" onclick="hide()">Hide</button>
             <button id="disable_button" class="sexybutton sexysimple sexysmall" onclick="disable()">Disable</button>
