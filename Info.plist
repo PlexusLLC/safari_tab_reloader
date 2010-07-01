@@ -5,15 +5,15 @@
 	<key>Author</key>
 	<string>pjv</string>
 	<key>CFBundleDisplayName</key>
-	<string>TabReloader</string>
+	<string>Tab Reloader</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.cyberplexus.tabreloader</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.9</string>
+	<string>0.9.2</string>
 	<key>CFBundleVersion</key>
-	<string>22</string>
+	<string>24</string>
 	<key>Chrome</key>
 	<dict>
 		<key>Bars</key>
