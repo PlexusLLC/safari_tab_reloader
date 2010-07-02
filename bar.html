@@ -84,15 +84,21 @@
             switch(validateMsg.command){
                 case "toggle_from_menu":
                 case "toggle_from_button":                
-                    var tab = safari.self.browserWindow.activeTab;
-                    var currentURL = tab.url;
+                    _activeTab = safari.self.browserWindow.activeTab;
+                    var currentURL = _activeTab.url;
+                    
+                    // set active tab as being read
+                    _activeTab.reloaderUnread = false;
                     
                     // prune out list of tabs in case we're here because of a closed tab
                     pruneHangArounds();
                     
+                    // mark tabs as read / unread
+                    markTabs();
+                    
                     // test for user navigating to a new URL in a reloading tab and disable reloading if so
-                    if (tab.timerID && (tab.url !== tab.originalURL))
-                        disable(tab);
+                    if (_activeTab.timerID && (_activeTab.url !== _activeTab.originalURL))
+                        disable(_activeTab);
                     
                     // disable tab reloader and return if no URL in tab
                     if (! currentURL) {
@@ -103,16 +109,10 @@
                     } // if
                     else
                         validateMsg.target.disabled = false;
-                    
-                    // set title read if necessary
-                    if ( !(_activeTab === safari.self.browserWindow.activeTab)) {
-                        _activeTab = safari.self.browserWindow.activeTab;
-                        _activeTab.page.dispatchMessage("markTabRead");
-                    } // if
-                    
+                                        
                     // update bar if necessary
                     if (safari.self.visible)
-                        updateBar(tab);
+                        updateBar(_activeTab);
                     break;   
             } // switch
         } // handleValidate
@@ -248,9 +248,19 @@
             if (currentURL && tab.reloadEnabled) {
                 tab.url = currentURL;
                 tab.reloadTime = new Date();
+                tab.reloaderUnread = true;
                 //updateBar();
             } // if                       
         } // reloadTab
+        
+        function markTabs(){
+            for (var i = 0; i < hangAroundTabs.length; i++) {
+                if (hangAroundTabs[i].reloaderUnread)
+                    hangAroundTabs[i].page.dispatchMessage("markTabUnread");
+                else
+                    hangAroundTabs[i].page.dispatchMessage("markTabRead");
+            }
+        }
         
         function resetButtonColors () {
             for (i=0;i<sexyButtons.length;i++)
@@ -297,6 +307,7 @@
             tab.delay = null;
             tab.buttonID = null;
             tab.originalURL = null;
+            tab.reloaderUnread = null;
             clearInterval(tab.timerID);
             clearTimeout(timerDisplayID);
             tab.timerID = null;
