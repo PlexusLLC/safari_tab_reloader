@@ -49,13 +49,13 @@
         
         function handleMessage (msgEvent) {
             switch(msgEvent.name){
-                case "sendMarkerStatus":                                          
+                case "markMe":                                          
                     tab = msgEvent.target;
                     _activeTab = safari.self.browserWindow.activeTab;
                     if (_activeTab === tab)
-                        tab.page.dispatchMessage("markerStatus","read");
+                        tab.page.dispatchMessage("markTabRead");
                     if ((_activeTab !== tab) && tab.reloadEnabled)
-                        tab.page.dispatchMessage("markerStatus","unread");
+                        tab.page.dispatchMessage("markTabUnread");
                     break;
                 case "updateBar":
                     updateBar(msgEvent.target);
@@ -107,7 +107,7 @@
                     // set title read if necessary
                     if ( !(_activeTab === safari.self.browserWindow.activeTab)) {
                         _activeTab = safari.self.browserWindow.activeTab;
-                        _activeTab.page.dispatchMessage("setTitleRead");
+                        _activeTab.page.dispatchMessage("markTabRead");
                     } // if
                     
                     // update bar if necessary
@@ -292,7 +292,7 @@
             if (! tab) // this is for the button in the bar
                 tab = safari.self.browserWindow.activeTab;
             
-            tab.page.dispatchMessage("setTitleRead");
+            tab.page.dispatchMessage("markTabRead");
             tab.reloadEnabled = false;
             tab.delay = null;
             tab.buttonID = null;
