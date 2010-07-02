@@ -18,7 +18,6 @@
         hide(); // start off hidden
         safari.self.browserWindow.addEventListener("command", handleCommand, false);
         safari.self.browserWindow.addEventListener("validate", handleValidate, false); 
-        safari.self.browserWindow.addEventListener("message", handleMessage, false);
         safari.extension.settings.addEventListener("change", handleChange, false); 
         
         var sexyButtons = document.getElementsByTagName("button");
@@ -46,22 +45,6 @@
                 default:
             }
         } // handleChange
-        
-        function handleMessage (msgEvent) {
-            switch(msgEvent.name){
-                case "markMe":                                          
-                    tab = msgEvent.target;
-                    _activeTab = safari.self.browserWindow.activeTab;
-                    if (_activeTab === tab)
-                        tab.page.dispatchMessage("markTabRead");
-                    if ((_activeTab !== tab) && tab.reloadEnabled)
-                        tab.page.dispatchMessage("markTabUnread");
-                    break;
-                case "updateBar":
-                    updateBar(msgEvent.target);
-                    break;
-            } // switch
-        } //handleMessage
         
         function handleCommand (commandMsg) {
             switch(commandMsg.command){

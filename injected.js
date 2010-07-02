@@ -3,17 +3,8 @@
 // it would be a tasteful little green diamond on the right-hand side...
 
 safari.self.addEventListener("message", handleMessage, false);
-window.addEventListener("load", handleLoad, false);
 
 var marker = "\u2666 "; // that's octal for "diamond"
-var markerStatus = null;
-
-function handleLoad(){
-    // don't run in anything other than the main page
-    if (window.location !== window.top.location) return;
-        
-    markMe();
-}
 
 function markTabUnread() {
     // don't run in anything other than the main page
@@ -34,10 +25,6 @@ function markTabRead() {
     if (myTitle.substr(0,2) == marker) {
         document.title = myTitle.substr(2,myTitle.length);
     }
-}
-    
-function markMe () {
-    safari.self.tab.dispatchMessage("markMe");
 }
 
 function handleMessage(msgEvent) {
