@@ -13,7 +13,6 @@
         
         // TODO custom delay time
         // TODO prefs to always auto-reload specified URLs
-        // TODO show last updated time (and countdown to next update) in bar
         
         hide(); // start off hidden
         safari.self.browserWindow.addEventListener("command", handleCommand, false);
@@ -48,7 +47,6 @@
         
         function handleCommand (commandMsg) {
             switch(commandMsg.command){
-                case "toggle_from_menu":
                 case "toggle_from_button":
                     _activeTab = safari.self.browserWindow.activeTab;
                     if (safari.self.visible){
@@ -65,7 +63,6 @@
         
         function handleValidate (validateMsg) {
             switch(validateMsg.command){
-                case "toggle_from_menu":
                 case "toggle_from_button":                
                     _activeTab = safari.self.browserWindow.activeTab;
                     var currentURL = _activeTab.url;
@@ -245,11 +242,6 @@
             }
         }
         
-        function resetButtonColors () {
-            for (i=0;i<sexyButtons.length;i++)
-                sexyButtons[i].className = "sexybutton sexysimple sexysmall";
-        }
-        
         function setDelay(delay,buttonID) {
             var tab = safari.self.browserWindow.activeTab;            
             delay = delay * 1000 * 60; // convert to msec {yeah, yeah, aka 60,000}
@@ -307,6 +299,27 @@
             // hide the bar
             safari.self.hide();
         } // hide
+        
+        function resetButtonColors () {
+            for (i=0;i<sexyButtons.length;i++)
+                sexyButtons[i].className = "sexybutton sexysimple sexysmall";
+        }
+        
+        function showDelay(div){
+            var showDiv = document.getElementById(div);
+            var hideDiv;
+            
+            if (div === "simple_delay")
+                hideDiv = document.getElementById("custom_delay");
+            else
+                hideDiv = document.getElementById("simple_delay");
+                
+            hideDiv.style.display  = "none";
+            showDiv.style.display  = "inline-block"; 
+            showDiv.style.position = "relative"; 
+            showDiv.style.bottom   = "3px"; 
+        }
+
 
     </script>
 </head>
@@ -315,16 +328,43 @@
         <span id="rt_active" style="color: #59a901;">&diams;</span>
         <span id="rt_inactive" style="color: red;">&diams;</span>
         Reload Tab Every: 
-        <div id="delay_buttons" style="display: inline-block; position: relative; bottom: 3px">
-            <button id="b1" class="sexybutton sexysimple sexysmall" value="30 sec" onclick="setDelay(.5,'b1')">30 sec</button>
-            <button id="b2" class="sexybutton sexysimple sexysmall" value="1 min" onclick="setDelay(1,'b2')">1 min</button>
-            <button id="b3" class="sexybutton sexysimple sexysmall" value="2 min" onclick="setDelay(2,'b3')">2 min</button>
-            <button id="b4" class="sexybutton sexysimple sexysmall" value="5 min" onclick="setDelay(5,'b4')">5 min</button>
-            <button id="b5" class="sexybutton sexysimple sexysmall" value="15 min" onclick="setDelay(15,'b5')">15 min</button>
-            <button id="b6" class="sexybutton sexysimple sexysmall" value="30 min" onclick="setDelay(30,'b6')">30 min</button>
-            <button id="b7" class="sexybutton sexysimple sexysmall" value="60 min" onclick="setDelay(60,'b7')">60 min</button>
+        <div id="simple_delay" style="display: inline-block; position: relative; bottom: 3px">
+            <button id="b1" class="sexybutton sexysimple sexysmall" onclick="setDelay(.5,'b1')">30 sec</button>
+            <button id="b2" class="sexybutton sexysimple sexysmall" onclick="setDelay(1,'b2')">1 min</button>
+            <button id="b3" class="sexybutton sexysimple sexysmall" onclick="setDelay(2,'b3')">2 min</button>
+            <button id="b4" class="sexybutton sexysimple sexysmall" onclick="setDelay(5,'b4')">5 min</button>
+            <button id="b5" class="sexybutton sexysimple sexysmall" onclick="setDelay(15,'b5')">15 min</button>
+            <button id="b6" class="sexybutton sexysimple sexysmall" onclick="setDelay(30,'b6')">30 min</button>
+            <button id="b7" class="sexybutton sexysimple sexysmall" onclick="setDelay(60,'b7')">60 min</button>
+            &nbsp;&nbsp;
+            <button id="bcustom" class="sexybutton sexysimple sexysmall" onclick="showDelay('custom_delay')">Custom</button>
         </div>
-        <!-- TODO: add field and popup (secs, mins, hrs) for custom delay -->
+        <div id="custom_delay" style="display: none">
+            <select name="cust_hours" id="cust_hours">
+                <option value="0">-</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+            </select>hrs
+            <select name="cust_minutes" id="cust_minutes">
+                <option value="0">-</option><option value="1">1</option> <option value="2">2</option> <option value="3">3</option> <option value="4">4</option> <option value="5">5</option> <option value="6">6</option> <option value="7">7</option> <option value="8">8</option> <option value="9">9</option> <option value="10">10</option> <option value="11">11</option> <option value="12">12</option> <option value="13">13</option> <option value="14">14</option> <option value="15">15</option> <option value="16">16</option> <option value="17">17</option> <option value="18">18</option> <option value="19">19</option> <option value="20">20</option> <option value="21">21</option> <option value="22">22</option> <option value="23">23</option> <option value="24">24</option> <option value="25">25</option> <option value="26">26</option> <option value="27">27</option> <option value="28">28</option> <option value="29">29</option> <option value="30">30</option> <option value="31">31</option> <option value="32">32</option> <option value="33">33</option> <option value="34">34</option> <option value="35">35</option> <option value="36">36</option> <option value="37">37</option> <option value="38">38</option> <option value="39">39</option> <option value="40">40</option> <option value="41">41</option> <option value="42">42</option> <option value="43">43</option> <option value="44">44</option> <option value="45">45</option> <option value="46">46</option> <option value="47">47</option> <option value="48">48</option> <option value="49">49</option> <option value="50">50</option> <option value="51">51</option> <option value="52">52</option> <option value="53">53</option> <option value="54">54</option> <option value="55">55</option> <option value="56">56</option> <option value="57">57</option> <option value="58">58</option> <option value="59">59</option> <option value="60">60</option>
+            </select>min
+            <select name="cust_seconds" id="cust_seconds">
+                <option value="0">-</option><option value="1">1</option> <option value="2">2</option> <option value="3">3</option> <option value="4">4</option> <option value="5">5</option> <option value="6">6</option> <option value="7">7</option> <option value="8">8</option> <option value="9">9</option> <option value="10">10</option> <option value="11">11</option> <option value="12">12</option> <option value="13">13</option> <option value="14">14</option> <option value="15">15</option> <option value="16">16</option> <option value="17">17</option> <option value="18">18</option> <option value="19">19</option> <option value="20">20</option> <option value="21">21</option> <option value="22">22</option> <option value="23">23</option> <option value="24">24</option> <option value="25">25</option> <option value="26">26</option> <option value="27">27</option> <option value="28">28</option> <option value="29">29</option> <option value="30">30</option> <option value="31">31</option> <option value="32">32</option> <option value="33">33</option> <option value="34">34</option> <option value="35">35</option> <option value="36">36</option> <option value="37">37</option> <option value="38">38</option> <option value="39">39</option> <option value="40">40</option> <option value="41">41</option> <option value="42">42</option> <option value="43">43</option> <option value="44">44</option> <option value="45">45</option> <option value="46">46</option> <option value="47">47</option> <option value="48">48</option> <option value="49">49</option> <option value="50">50</option> <option value="51">51</option> <option value="52">52</option> <option value="53">53</option> <option value="54">54</option> <option value="55">55</option> <option value="56">56</option> <option value="57">57</option> <option value="58">58</option> <option value="59">59</option> <option value="60">60</option>
+            </select>sec
+            <button id="bactivate" class="sexybutton sexysimple sexysmall" onclick="showDelay('setCustomDelay')">Activate</button>
+            &nbsp;&nbsp;
+            <button id="bsimple" class="sexybutton sexysimple sexysmall" onclick="showDelay('simple_delay')">Simple</button>
+        </div>
         
         <div style="float: right; display: inline-block; position: relative; bottom: 3px">
             <span id="update_display" style="display: inline-block; position: relative; bottom: -2px; color: #ffff99; font: 'Lucida Grande', Arial, 'Helvetica Neue', Helvetica; font-size: 10px; font-weight: normal;">
