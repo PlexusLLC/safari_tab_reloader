@@ -19,6 +19,7 @@
         safari.self.browserWindow.addEventListener("validate", handleValidate, false); 
         safari.extension.settings.addEventListener("change", handleChange, false); 
         
+        var marker = "\u2666 "; // that's octal for "diamond"
         var sexyButtons = document.getElementsByTagName("button");
         var hangAroundTabs = [];
         var _activeTab = safari.self.browserWindow.activeTab;
@@ -96,6 +97,33 @@
                     break;   
             } // switch
         } // handleValidate
+        
+        function markTitle(tab) {
+            var myTitle = tab.title;
+            
+            if (myTitle.substr(0,2) !== marker){
+                myTitle = marker + tab.title;
+                tab.page.dispatchMessage("setTitle",myTitle);
+            }
+        }
+
+        function unmarkTitle(tab){
+            var myTitle = tab.title;
+            
+            if (myTitle.substr(0,2) == marker){
+                myTitle = myTitle.substr(2,myTitle.length);
+                tab.page.dispatchMessage("setTitle",myTitle);
+            }
+        }
+        
+        function markTabs(){
+            for (var i = 0; i < hangAroundTabs.length; i++) {
+                if (hangAroundTabs[i].reloaderUnread)
+                    markTitle(hangAroundTabs[i]);
+                else
+                    unmarkTitle(hangAroundTabs[i]);
+            }
+        }
         
         function displayLastReloadTime(tab){
             var lastHours = tab.reloadTime.getHours();
@@ -262,18 +290,8 @@
                 tab.url = currentURL;
                 tab.reloadTime = new Date();
                 tab.reloaderUnread = true;
-                //updateBar();
             } // if                       
         } // reloadTab
-        
-        function markTabs(){
-            for (var i = 0; i < hangAroundTabs.length; i++) {
-                if (hangAroundTabs[i].reloaderUnread)
-                    hangAroundTabs[i].page.dispatchMessage("markTabUnread");
-                else
-                    hangAroundTabs[i].page.dispatchMessage("markTabRead");
-            }
-        }
         
         function setDelay(delay,buttonID,custom) {
             var tab = safari.self.browserWindow.activeTab;                       
@@ -330,7 +348,7 @@
             if (! tab) // this is for the button in the bar
                 tab = safari.self.browserWindow.activeTab;
             
-            tab.page.dispatchMessage("markTabRead");
+            unmarkTitle(tab);
             tab.reloadEnabled = false;
             tab.delay = null;
             if (tab.customDelay){

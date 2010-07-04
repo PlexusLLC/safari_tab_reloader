@@ -2,44 +2,17 @@
 // it would be nice if apple, would let us play with the chrome of the tabs so i could put a little img on it.
 // it would be a tasteful little green diamond on the right-hand side...
 
-safari.self.addEventListener("message", handleMessage, false);
-
-var marker = "\u2666 "; // that's octal for "diamond"
-
-function markTabUnread() {
-    // don't run in anything other than the main page
-    if (window.location !== window.top.location) return;
-    
-    // if not already, prepend title with marker
-    myTitle = document.title;
-    if (! (myTitle.substr(0,2) == marker))
-        document.title = marker + myTitle;
-}
-
-function markTabRead() {
-    // don't run in anything other than the main page
-    if (window.location !== window.top.location) return;
-    
-    // if title begins marker, get rid of it
-    myTitle = document.title;
-    if (myTitle.substr(0,2) == marker) {
-        document.title = myTitle.substr(2,myTitle.length);
-    }
-}
+if (window.top === window)
+    safari.self.addEventListener("message", handleMessage, false);
 
 function handleMessage(msgEvent) {
     // don't run in anything other than the main page
-    if (window.location !== window.top.location) return;
+    if (window !== window.top) return;
 
     switch (msgEvent.name) {
 
-        case "markTabUnread":
-            markTabUnread();
+        case "setTitle":
+            self.window.document.title = msgEvent.message;
             break;
-
-        case "markTabRead":
-            markTabRead();
-            break;
-
     } // switch
 } // handleMessage
