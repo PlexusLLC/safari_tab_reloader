@@ -1,0 +1,64 @@
+body {
+  font: 13px "Helvetica Neue", Helvetica, "Lucida Grande", Arial, clean, sans-serif;
+  background-color: #000; 
+  color: #fff;
+}
+
+select {
+	display: inline-block;
+	margin: 0; margin-right: 2px;
+	font: bold 13px "Lucida Grande", Arial, "Helvetica Neue", Helvetica, clean, sans-serif !important;
+	text-decoration: none !important;
+	border: none;
+	white-space: nowrap;
+	cursor: pointer;
+	user-select: none;
+	-moz-user-select: none;
+	position: relative; 
+	padding: 4px 7px 5px;
+	font: inherit;
+	font-size: 11px !important;
+	font-style: normal !important; 
+	font-weight: normal !important; 
+	color: #fff !important;
+	line-height: 1; 
+	height:  20px;
+	bottom: -1px;
+	background-image: url(images/skins/simple/awesome-overlay-sprite.png);
+	background-repeat: repeat-x;
+	background-position: 0 0;
+	background-color: #333;
+	
+	/* Special effects */
+	text-shadow: 0 -1px 1px rgba(0,0,0,0.25), -2px 0 1px rgba(0,0,0,0.25); 
+	border-radius: 5px; 
+	-moz-border-radius: 5px; 
+	-webkit-border-radius: 5px; 
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,0.5); 
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+	
+	/* Cross browser inline block hack - http://blog.mozilla.com/webdev/2009/02/20/cross-browser-inline-block/ */
+	display: -moz-inline-stack;
+	display: inline-block;
+	vertical-align: middle;
+	*display: inline !important;
+	position: relative;
+}
+
+.down {
+  display: inline-block;
+  position: relative;
+  bottom: -3px;
+}
+
+.green {
+  background-color: #59a901;
+}
+
+.black {
+  background-color: #333;
+}
+
+.marker {
+  font: 13px "Helvetica Neue", Helvetica, clean, sans-serif;
+}
