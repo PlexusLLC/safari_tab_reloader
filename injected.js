@@ -12,7 +12,7 @@ function handleMessage(msgEvent) {
     switch (msgEvent.name) {
 
         case "setTitle":
-            self.window.document.title = msgEvent.message;
+            document.title = msgEvent.message;
             break;
     } // switch
 } // handleMessage

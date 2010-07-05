@@ -21,7 +21,7 @@
         
         var marker = "\u2666 "; // that's octal for "diamond"
         var sexyButtons = document.getElementsByTagName("button");
-        var hangAroundTabs = [];
+        var reloaderTabs = [];
         var _activeTab = safari.self.browserWindow.activeTab;
         var autoHide = safari.extension.settings.hide_bar;
         var timerDisplayID;
@@ -29,11 +29,11 @@
         function pruneHangArounds () {
             var tmp = [];
             
-            for (var i = 0; i < hangAroundTabs.length; i++) {
-                if (hangAroundTabs[i].timerID && hangAroundTabs[i].browserWindow)
-                    tmp.push(hangAroundTabs[i]);
+            for (var i = 0; i < reloaderTabs.length; i++) {
+                if (reloaderTabs[i].timerID && reloaderTabs[i].browserWindow)
+                    tmp.push(reloaderTabs[i]);
             }
-            hangAroundTabs = tmp;
+            reloaderTabs = tmp;
             delete tmp;
         } // pruneHangArounds      
                         
@@ -69,17 +69,18 @@
                     var currentURL = _activeTab.url;
                     
                     // set active tab as being read
-                    _activeTab.reloaderUnread = false;
+                    if (_activeTab.reloadEnabled)
+                        unmarkTitle(_activeTab);
                     
                     // prune out list of tabs in case we're here because of a closed tab
                     pruneHangArounds();
                     
-                    // mark tabs as read / unread
-                    markTabs();
+                    // mark and unmark all tab titles as necessary
+                    setTabTitles();
                     
                     // test for user navigating to a new URL in a reloading tab and disable reloading if so
-                    if (_activeTab.timerID && (_activeTab.url !== _activeTab.originalURL))
-                        disable(_activeTab);
+                    if (_activeTab.reloadEnabled && (_activeTab.url !== _activeTab.originalURL))
+                        disableReloading(_activeTab);
                     
                     // disable tab reloader and return if no URL in tab
                     if (! currentURL) {
@@ -99,29 +100,18 @@
         } // handleValidate
         
         function markTitle(tab) {
-            var myTitle = tab.title;
-            
-            if (myTitle.substr(0,2) !== marker){
-                myTitle = marker + tab.title;
-                tab.page.dispatchMessage("setTitle",myTitle);
-            }
+            if (tab.reloaderTitle.substr(0,2) !== marker)
+                tab.reloaderTitle = marker + tab.reloaderTitle;
         }
 
         function unmarkTitle(tab){
-            var myTitle = tab.title;
-            
-            if (myTitle.substr(0,2) == marker){
-                myTitle = myTitle.substr(2,myTitle.length);
-                tab.page.dispatchMessage("setTitle",myTitle);
-            }
+            if (tab.reloaderTitle.substr(0,2) == marker)
+                tab.reloaderTitle = tab.reloaderTitle.substr(2,tab.reloaderTitle.length);
         }
         
-        function markTabs(){
-            for (var i = 0; i < hangAroundTabs.length; i++) {
-                if (hangAroundTabs[i].reloaderUnread)
-                    markTitle(hangAroundTabs[i]);
-                else
-                    unmarkTitle(hangAroundTabs[i]);
+        function setTabTitles(){
+            for (var i = 0; i < reloaderTabs.length; i++) {
+                reloaderTabs[i].page.dispatchMessage("setTitle",reloaderTabs[i].reloaderTitle);
             }
         }
         
@@ -289,7 +279,7 @@
             if (currentURL && tab.reloadEnabled) {
                 tab.url = currentURL;
                 tab.reloadTime = new Date();
-                tab.reloaderUnread = true;
+                markTitle(tab);
             } // if                       
         } // reloadTab
         
@@ -329,13 +319,14 @@
             tab.buttonID = buttonID;
             tab.delay = delay;
             tab.reloadEnabled = true;
+            tab.reloaderTitle = tab.title;
             tab.originalURL = tab.url;
             tab.reloadTime = new Date();
             tab.timerID = setInterval(function() { return reloadTab(tab); },delay);
             
             // add to the list of tabs we are paying attention to
             // solves this bug: https://devforums.apple.com/message/233887
-            hangAroundTabs.push(tab);
+            reloaderTabs.push(tab);
                       
             // hide the bar
             if (autoHide)
@@ -344,7 +335,7 @@
                 updateBar(tab);
         } // setDelay
         
-        function disable (tab) {
+        function disableReloading (tab) {
             if (! tab) // this is for the button in the bar
                 tab = safari.self.browserWindow.activeTab;
             
@@ -360,7 +351,7 @@
             }
             tab.buttonID = null;
             tab.originalURL = null;
-            tab.reloaderUnread = null;
+            tab.reloaderTitle = null;
             clearInterval(tab.timerID);
             clearTimeout(timerDisplayID);
             tab.timerID = null;
@@ -371,7 +362,7 @@
                 hide();
             else
                 updateBar(tab);
-        } // disable
+        } // disableReloading
         
         function hide() {
             // hide the bar
@@ -474,7 +465,7 @@
                 <span id="display_end"></span>
             </span>
             <button id="hide_button" class="sexybutton sexysimple sexysmall" onclick="hide()">Hide</button>
-            <button id="disable_button" class="sexybutton sexysimple sexysmall" onclick="disable()">Disable</button>
+            <button id="disable_button" class="sexybutton sexysimple sexysmall" onclick="disableReloading()">Disable</button>
         </div>
     </div> <!-- content -->
 </body>
