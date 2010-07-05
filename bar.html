@@ -108,8 +108,11 @@
         }
         
         function setTabTitles(){
+            var tab;
             for (var i = 0; i < reloaderTabs.length; i++) {
-                reloaderTabs[i].page.dispatchMessage("setTitle",reloaderTabs[i].reloaderTitle);
+                tab = reloaderTabs[i];
+                if (tab.title !== tab.reloaderTitle)
+                    tab.page.dispatchMessage("setTitle",tab.reloaderTitle);
             }
         }
         
