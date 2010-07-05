@@ -1,16 +1,15 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-   "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 
 <html lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta charset=utf-8>
 	<title>bar</title>
 	<meta name="author" content="pjv">
 	<!-- Date: 2010-06-15 -->
 	<link rel="stylesheet" href="./sexybuttons.css" type="text/css">	
 	<link rel="stylesheet" href="./style.css" type="text/css">
 	
-	<script type="text/javascript">
+	<script>
         
         // TODO prefs to always auto-reload specified URLs
         
@@ -20,7 +19,6 @@
         safari.extension.settings.addEventListener("change", handleChange, false); 
         
         var marker = "\u2666 "; // that's octal for "diamond"
-        var sexyButtons = document.getElementsByTagName("button");
         var reloaderTabs = [];
         var _activeTab = safari.self.browserWindow.activeTab;
         var autoHide = safari.extension.settings.hide_bar;
