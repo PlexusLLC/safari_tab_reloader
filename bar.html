@@ -12,6 +12,8 @@
 	<script>
         
         // TODO prefs to always auto-reload specified URLs
+        // TODO checkbox in bar to apply to all open tabs
+        // TODO re-start loading if user navigates back to original URL
         
         hide(); // start off hidden
         safari.self.browserWindow.addEventListener("command", handleCommand, false);
@@ -73,13 +75,6 @@
                     // prune out list of tabs in case we're here because of a closed tab
                     pruneHangArounds();
                     
-                    // mark and unmark all tab titles as necessary
-                    setTabTitles();
-                    
-                    // test for user navigating to a new URL in a reloading tab and disable reloading if so
-                    if (_activeTab.reloadEnabled && (_activeTab.url !== _activeTab.originalURL))
-                        disableReloading(_activeTab);
-                    
                     // disable tab reloader and return if no URL in tab
                     if (! currentURL) {
                         // disable the menu item and the toolbar button
@@ -89,6 +84,17 @@
                     } // if
                     else
                         validateMsg.target.disabled = false;
+
+                    // test for user navigating to a new URL in a reloading tab and disable reloading if so
+                    if (_activeTab.reloadEnabled && (_activeTab.url !== _activeTab.originalURL))
+                        disableReloading(_activeTab);
+                        
+                    // test for navigating back to a reloading URL from somewhere else and re-enable
+                    if ((!_activeTab.reloadEnabled) && (_activeTab.url == _activeTab.originalURL))
+                        enableReloading(_activeTab);
+                    
+                    // mark and unmark all tab titles as necessary
+                    setTabTitles();
                                         
                     // update bar if necessary
                     if (safari.self.visible)
@@ -336,7 +342,19 @@
                 updateBar(tab);
         } // setDelay
         
+        function enableReloading (tab) {
+            tab.reloadEnabled = true;
+            tab.reloadTime = new Date();
+            tab.timerID = setInterval(function() { return reloadTab(tab); },tab.delay);
+        }
+        
         function disableReloading (tab) {
+            tab.reloadEnabled = false;
+            clearInterval(tab.timerID);
+            clearTimeout(timerDisplayID);
+        }
+        
+        function forgetTab (tab) {
             if (! tab) // this is for the button in the bar
                 tab = safari.self.browserWindow.activeTab;
             
@@ -363,7 +381,7 @@
                 hide();
             else
                 updateBar(tab);
-        } // disableReloading
+        } // forgetTab
         
         function hide() {
             // hide the bar
@@ -466,7 +484,7 @@
                 <span id="display_end"></span>
             </span>
             <button id="hide_button" class="sexybutton sexysimple sexysmall" onclick="hide()">Hide</button>
-            <button id="disable_button" class="sexybutton sexysimple sexysmall" onclick="disableReloading()">Disable</button>
+            <button id="disable_button" class="sexybutton sexysimple sexysmall" onclick="forgetTab()">Disable</button>
         </div>
     </div> <!-- content -->
 </body>
