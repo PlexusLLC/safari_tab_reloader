@@ -63,3 +63,23 @@ select {
 .marker {
   font: 13px "Helvetica Neue", Helvetica, clean, sans-serif;
 }
+
+/* pulsing... */
+@-webkit-keyframes pulse {
+  0% {
+        opacity: 1.0;
+      }
+  50% {
+        opacity: 0.0;
+      }
+  100% {
+        opacity: 1.0;
+      }
+}
+
+.pulsed {
+  -webkit-animation-name: pulse;
+  -webkit-animation-duration: 4s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: ease-in-out;
+}
