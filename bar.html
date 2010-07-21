@@ -12,7 +12,6 @@
 	<script>
         
         // TODO prefs to always auto-reload specified URLs
-        // TODO checkbox in bar to apply to all open tabs
         
         hide(); // start off hidden
         safari.self.browserWindow.addEventListener("command", handleCommand, false);
@@ -25,7 +24,7 @@
         var autoHide = safari.extension.settings.hide_bar;
         var timerDisplayID;
         
-        function pruneHangArounds () {
+        function pruneReloaderTabs () {
             var tmp = [];
             
             for (var i = 0; i < reloaderTabs.length; i++) {
@@ -34,7 +33,7 @@
             }
             reloaderTabs = tmp;
             delete tmp;
-        } // pruneHangArounds      
+        } // pruneReloaderTabs      
                         
         function handleChange (chgEvent){
             switch(chgEvent.key){
@@ -72,7 +71,7 @@
                         unmarkTitle(_activeTab);
                     
                     // prune out list of tabs in case we're here because of a closed tab
-                    pruneHangArounds();
+                    pruneReloaderTabs();
                     
                     // disable tab reloader and return if no URL in tab
                     if (! currentURL) {
@@ -207,6 +206,9 @@
             var bsimple = document.getElementById('bsimple');
             
             resetButtonColors();
+            
+            // always uncheck the all tabs checkbox
+            document.getElementById('apply_all').checked = false;
 
             if (tab.reloadEnabled) {
                 
@@ -290,7 +292,19 @@
         } // reloadTab
         
         function setDelay(delay,buttonID,custom) {
-            var tab = safari.self.browserWindow.activeTab;                       
+            var all_tabs = document.getElementById('apply_all').checked;
+            
+            if (all_tabs) {
+                var tabs = safari.self.browserWindow.tabs;
+                for (var i = 0; i < tabs.length; i++) {
+                    _setDelay(delay,buttonID,custom,tabs[i]);
+                }
+            } // all_tabs
+            else
+                _setDelay(delay,buttonID,custom,safari.self.browserWindow.activeTab);
+        }
+        
+        function _setDelay(delay,buttonID,custom,tab) {
 
             if (custom){
                 tab.customDelay         = {};
@@ -354,8 +368,19 @@
         }
         
         function forgetTab (tab) {
-            if (! tab) // this is for the button in the bar
-                tab = safari.self.browserWindow.activeTab;
+            if (! tab && document.getElementById('apply_all').checked) {
+                for (var i = 0; i < reloaderTabs.length; i++) {
+                    _forgetTab(reloaderTabs[i]);
+                }
+            }
+            else if (! tab) {
+                _forgetTab(safari.self.browserWindow.activeTab);
+            }
+            else
+                _forgetTab(tab);
+        } // forgetTab
+        
+        function _forgetTab (tab) {
             
             unmarkTitle(tab);
             tab.reloadEnabled = false;
@@ -373,14 +398,14 @@
             clearInterval(tab.timerID);
             clearTimeout(timerDisplayID);
             tab.timerID = null;
-            pruneHangArounds();
+            pruneReloaderTabs();
 
             // hide the bar
             if (autoHide)
                 hide();
             else
                 updateBar(tab);
-        } // forgetTab
+        } // _forgetTab
         
         function hide() {
             // hide the bar
@@ -447,7 +472,7 @@
             <button id="b7" class="sexybutton sexysimple sexysmall" onclick="setDelay(60,'b7',false)">60 min</button>
             &nbsp;&nbsp;
             <button id="bcustom" class="sexybutton sexysimple sexysmall sexyorange" onclick="showDelay('custom_delay')">Custom</button>
-        </div>
+        </div> <!--id="simple_delay" -->
         <div id="custom_delay" style="display: none">
             <select name="cust_hours" id="cust_hours">
                 <option value="0">-</option>
@@ -473,6 +498,9 @@
             <button id="bactivate" class="sexybutton sexysimple sexysmall" onclick="setDelay(null,null,true)">Set</button>
             &nbsp;&nbsp;
             <button id="bsimple" class="sexybutton sexysimple sexysmall sexyorange" onclick="showDelay('simple_delay')">Simple</button>
+        </div> <!--id="custom_delay" -->
+        <div style="display: inline-block; position: relative; ">
+            <input type="checkbox" id="apply_all" /> Apply to all tabs
         </div>
         
         <div style="float: right; display: inline-block; position: relative; bottom: 3px">
