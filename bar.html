@@ -140,7 +140,7 @@
             if (lastSeconds < 10)
                 lastSeconds = "0" + lastSeconds;
             
-            var lastUpdate = lastHours + ":" + lastMinutes + ":" + lastSeconds + " " + lastAorP + " | ";
+            var lastUpdate = lastHours + ":" + lastMinutes + ":" + lastSeconds + " " + lastAorP + " &nbsp;&nbsp;|&nbsp;&nbsp;";
             
             document.getElementById('last_update').innerHTML = lastUpdate;
         }
@@ -369,9 +369,9 @@
         
         function forgetTab (tab) {
             if (! tab && document.getElementById('apply_all').checked) {
-                _forgetTab(safari.self.browserWindow.activeTab); // why do i need this???
-                for (var i = 0; i < reloaderTabs.length; i++) {
-                    _forgetTab(reloaderTabs[i]);
+                var tabs = safari.self.browserWindow.tabs;
+                for (var i = 0; i < tabs.length; i++) {
+                    _forgetTab(tabs[i]);
                 }
             }
             else if (! tab) {
@@ -460,9 +460,10 @@
 <body> 
     <div id="content" >
         <div style="display: inline-block; position: relative; bottom: 1px;">
-        <span id="rt_active" style="color: #59a901;" class="marker pulsed">&diams;</span>
-        <span id="rt_inactive" style="color: red;" class="marker">&diams;</span>
-        Reload Tab Every: </div>
+            <span id="rt_active" style="color: #59a901;" class="marker pulsed">&diams;</span>
+            <span id="rt_inactive" style="color: #a90118;" class="marker">&diams;</span>
+            <span style="color: #ff8a00"> <input type="checkbox" id="apply_all" title="Apply to all tabs in window" />All tabs </span>&nbsp;&nbsp;Reload Every: 
+        </div>
         <div id="simple_delay" style="display: inline-block; position: relative; bottom: 4px">
             <button id="b1" class="sexybutton sexysimple sexysmall" onclick="setDelay(.5,'b1',false)">30 sec</button>
             <button id="b2" class="sexybutton sexysimple sexysmall" onclick="setDelay(1,'b2',false)">1 min</button>
@@ -500,8 +501,8 @@
             &nbsp;&nbsp;
             <button id="bsimple" class="sexybutton sexysimple sexysmall sexyorange" onclick="showDelay('simple_delay')">Simple</button>
         </div> <!--id="custom_delay" -->
-        <div style="display: inline-block; position: relative; ">
-            <input type="checkbox" id="apply_all" /> Apply to all tabs
+        <div style="display: inline-block; position: relative; bottom: 4px">
+            <button id="disable_button" class="sexybutton sexysimple sexysmall sexyred" onclick="forgetTab()">Disable</button>
         </div>
         
         <div style="float: right; display: inline-block; position: relative; bottom: 3px">
@@ -512,7 +513,6 @@
                 <span id="display_end"></span>
             </span>
             <button id="hide_button" class="sexybutton sexysimple sexysmall" onclick="hide()">Hide</button>
-            <button id="disable_button" class="sexybutton sexysimple sexysmall" onclick="forgetTab()">Disable</button>
         </div>
     </div> <!-- content -->
 </body>
