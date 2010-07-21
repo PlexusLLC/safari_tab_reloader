@@ -369,6 +369,7 @@
         
         function forgetTab (tab) {
             if (! tab && document.getElementById('apply_all').checked) {
+                _forgetTab(safari.self.browserWindow.activeTab); // why do i need this???
                 for (var i = 0; i < reloaderTabs.length; i++) {
                     _forgetTab(reloaderTabs[i]);
                 }
