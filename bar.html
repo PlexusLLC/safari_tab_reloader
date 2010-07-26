@@ -306,6 +306,10 @@
         
         function _setDelay(delay,buttonID,custom,tab) {
 
+            // forget this tab's current settings if they exist
+            if (tab.timerID)
+                _forgetTab(tab);
+            
             if (custom){
                 tab.customDelay         = {};
                 tab.customDelay.hours   = document.getElementById('cust_hours').value;
@@ -323,16 +327,7 @@
                 }
             }
             else {
-                // clear custom stuff if it exists
-                if (tab.customDelay)
-                    delete tab.customDelay;
-                    
                 delay = delay * 1000 * 60; // convert to msec {yeah, yeah, aka 60,000}
-            }
-            
-            // clear old timer if it exists
-            if (tab.timerID) {
-                clearInterval(tab.timerID);
             }
                   
             resetButtonColors();            
