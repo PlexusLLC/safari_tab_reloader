@@ -9,448 +9,419 @@
 	<link rel="stylesheet" href="./sexybuttons.css" type="text/css">	
 	<link rel="stylesheet" href="./style.css" type="text/css">
 	
-	<script>
+<script>
         
-        // TODO prefs to always auto-reload specified URLs
-        
-        hide(); // start off hidden
-        safari.self.browserWindow.addEventListener("command", handleCommand, false);
-        safari.self.browserWindow.addEventListener("validate", handleValidate, false); 
-        safari.extension.settings.addEventListener("change", handleChange, false); 
-        
-        var marker = "\u2666 "; // that's octal for "diamond"
-        var reloaderTabs = [];
-        var _activeTab = safari.self.browserWindow.activeTab;
-        var autoHide = safari.extension.settings.hide_bar;
-        var timerDisplayID;
-        
-        function pruneReloaderTabs () {
-            var tmp = [];
-            
-            for (var i = 0; i < reloaderTabs.length; i++) {
-                if (reloaderTabs[i].timerID && reloaderTabs[i].browserWindow)
-                    tmp.push(reloaderTabs[i]);
-            }
-            reloaderTabs = tmp;
-            delete tmp;
-        } // pruneReloaderTabs      
-                        
-        function handleChange (chgEvent){
-            switch(chgEvent.key){
-                case "hide_bar":
-                    autoHide = chgEvent.newValue;
-                    break;
-                default:
-            }
-        } // handleChange
-        
-        function handleCommand (commandMsg) {
-            switch(commandMsg.command){
-                case "toggle_from_button":
-                    _activeTab = safari.self.browserWindow.activeTab;
-                    if (safari.self.visible){
-                        hide();
-                        return;
-                    }
-                    else {
-                        updateBar(_activeTab);
-                        safari.self.show();
-                    }
-                    break;
-            } // switch
-        } //handleCommand
-        
-        function handleValidate (validateMsg) {
-            switch(validateMsg.command){
-                case "toggle_from_button":                
-                    _activeTab = safari.self.browserWindow.activeTab;
-                    var currentURL = _activeTab.url;
-                    
-                    // set active tab as being read
-                    if (_activeTab.reloadEnabled)
-                        unmarkTitle(_activeTab);
-                    
-                    // prune out list of tabs in case we're here because of a closed tab
-                    pruneReloaderTabs();
-                    
-                    // disable tab reloader and return if no URL in tab
-                    if (! currentURL) {
-                        // disable the menu item and the toolbar button
-                        validateMsg.target.disabled = true;
-                        hide();
-                        return;
-                    } // if
-                    else
-                        validateMsg.target.disabled = false;
+// TODO prefs to always auto-reload specified URLs
+hide(); // start off hidden
+safari.self.browserWindow.addEventListener("command", handleCommand, false);
+safari.self.browserWindow.addEventListener("validate", handleValidate, false);
+safari.self.browserWindow.addEventListener("message", handleMessage, false);
+safari.extension.settings.addEventListener("change", handleChange, false);
 
-                    // test for user navigating to a new URL in a reloading tab and disable reloading if so
-                    if (_activeTab.reloadEnabled && (_activeTab.url !== _activeTab.originalURL))
-                        disableReloading(_activeTab);
-                        
-                    // test for navigating back to a reloading URL from somewhere else and re-enable
-                    if ((!_activeTab.reloadEnabled) && (_activeTab.url == _activeTab.originalURL))
-                        enableReloading(_activeTab);
-                    
-                    // mark and unmark all tab titles as necessary
-                    setTabTitles();
-                                        
-                    // update bar if necessary
-                    if (safari.self.visible)
-                        updateBar(_activeTab);
-                    break;   
-            } // switch
-        } // handleValidate
-        
-        function markTitle(tab) {
-            if (tab.reloaderTitle.substr(0,2) !== marker)
-                tab.reloaderTitle = marker + tab.reloaderTitle;
-        }
+var marker = "\u2666 "; // that's octal for "diamond"
+var reloaderTabs = [];
+var _activeTab = safari.self.browserWindow.activeTab;
+var autoHide = safari.extension.settings.hide_bar;
+var timerDisplayID;
 
-        function unmarkTitle(tab){
-            if (tab.reloaderTitle.substr(0,2) == marker)
-                tab.reloaderTitle = tab.reloaderTitle.substr(2,tab.reloaderTitle.length);
-        }
-        
-        function setTabTitles(){
-            var tab;
-            for (var i = 0; i < reloaderTabs.length; i++) {
-                tab = reloaderTabs[i];
-                if (tab.title !== tab.reloaderTitle)
-                    tab.page.dispatchMessage("setTitle",tab.reloaderTitle);
-            }
-        }
-        
-        function displayLastReloadTime(tab){
-            var lastHours = tab.reloadTime.getHours();
-            var lastMinutes = tab.reloadTime.getMinutes();
-            var lastSeconds = tab.reloadTime.getSeconds();
-            var lastAorP;
-            
-            if (lastHours >= 12)
-                lastAorP = "pm";
-            else
-                lastAorP = "am";
-                
-            if (lastHours >= 13)
-                lastHours -= 12;
-            
-            if (lastMinutes < 10)
-                lastMinutes = "0" + lastMinutes;
-            
-            if (lastSeconds < 10)
-                lastSeconds = "0" + lastSeconds;
-            
-            var lastUpdate = lastHours + ":" + lastMinutes + ":" + lastSeconds + " " + lastAorP + " &nbsp;&nbsp;|&nbsp;&nbsp;";
-            
-            document.getElementById('last_update').innerHTML = lastUpdate;
-        }
-        
-        function displayCountdown(tab){
-            var reloadTime = tab.reloadTime;
-            if (! reloadTime)
-                reloadTime = new Date();
+function pruneReloaderTabs() {
+	var tmp = [];
 
-            var nextReload = new Date();    
-                        
-            nextReload.setTime(reloadTime.getTime() + tab.delay);  
-            
-            var now = new Date();      
-            
-            timeLeft = nextReload.getTime() - now.getTime();
-            
-            delete nextReload;
-            delete reloadTime;
-            delete now;
-            
-            days=0;hours=0;mins=0;secs=0;
+	for (var i = 0; i < reloaderTabs.length; i++) {
+		if (reloaderTabs[i].timerID && reloaderTabs[i].browserWindow) tmp.push(reloaderTabs[i]);
+	}
+	reloaderTabs = tmp;
+	delete tmp;
+} // pruneReloaderTabs   
+   
+function handleMessage(msg) {
+	var tab = msg.target;
+	switch (msg.name) {
+	case "getTitle":
+	  if (tab.reloadEnabled){
+	    if (tab === safari.self.browserWindow.activeTab) unmarkTitle(tab);
+  	  else markTitle(tab);
+	  }
+		break;
+	} // switch
+} //handleMessage
 
-    		timeLeft = Math.floor(timeLeft/1000);//kill the "milliseconds" so just secs
+function handleChange(chgEvent) {
+	switch (chgEvent.key) {
+	case "hide_bar":
+		autoHide = chgEvent.newValue;
+		break;
+	default:
+	}
+} // handleChange
 
-    		days=Math.floor(timeLeft/86400);//days
-    		
-    		timeLeft=timeLeft%86400;
-    		hours=Math.floor(timeLeft/3600);//hours
-    		
-    		timeLeft=timeLeft%3600;
-    		mins=Math.floor(timeLeft/60);//minutes
-    		
-    		timeLeft=timeLeft%60;
-    		secs=Math.floor(timeLeft);//seconds
-                            
-            if (hours >= 13)
-                hours -= 12;
-                
-            if (hours < 10)
-                hours = "0" + hours;
-            
-            if (mins < 10)
-                mins = "0" + mins;
-            
-            if (secs < 10)
-                secs = "0" + secs;
-            
-            var nextUpdate = hours + ":" + mins + ":" + secs;
-            
-            document.getElementById('next_update').innerHTML = nextUpdate;
-            
-            timerDisplayID = setTimeout(function() {return displayCountdown(tab);},1000);
-        }
-        
-        function updateBar (tab) {
-            var db = document.getElementById('disable_button');
-            var hb = document.getElementById('hide_button');
-            var am = document.getElementById('rt_active');
-            var im = document.getElementById('rt_inactive');
-            var cd = document.getElementById(tab.buttonID);
-            var bcustom = document.getElementById('bcustom');
-            var bsimple = document.getElementById('bsimple');
-            
-            resetButtonColors();
-            
-            // always uncheck the all tabs checkbox
-            document.getElementById('apply_all').checked = false;
+function handleCommand(commandMsg) {
+	switch (commandMsg.command) {
+	case "toggle_from_button":
+		_activeTab = safari.self.browserWindow.activeTab;
+		if (safari.self.visible) {
+			hide();
+			return;
+		} else {
+			updateBar(_activeTab);
+			safari.self.show();
+		}
+		break;
+	} // switch
+} //handleCommand
 
-            if (tab.reloadEnabled) {
-                
-                // show disable button
-                db.style.display = 'inline-block';
-                
-                // hide simple and custom buttons
-                bcustom.style.display = 'none';
-                bsimple.style.display = 'none';
+function handleValidate(validateMsg) {
+	switch (validateMsg.command) {
+	case "toggle_from_button":
+		_activeTab = safari.self.browserWindow.activeTab;
+		var currentURL = _activeTab.url.replace(/.scroll=\d+/g, '');
 
-                // show active marker
-                am.style.display = 'inline-block';
-                im.style.display = 'none';
+		// set active tab as being read
+		if (_activeTab.reloadEnabled) {
+			unmarkTitle(_activeTab);
+		}
 
-                // custom delay panel
-                if (! tab.customDelay){
-                    showDelay('simple_delay');
-                    
-                    // current delay green button
-                    if (cd)
-                        cd.className = "sexybutton sexysimple sexysmall sexygreen";
-                }   
-                else {
-                    showDelay('custom_delay');
-                    
-                    // values
-                    document.getElementById('cust_hours').value     = tab.customDelay.hours;
-                    document.getElementById('cust_minutes').value   = tab.customDelay.minutes;
-                    document.getElementById('cust_seconds').value   = tab.customDelay.seconds;
-                    
-                    resetCustomColors();
-                }
-                
-                // last update and countdown display
-                document.getElementById('display_begin').innerHTML = "[ ";
-                document.getElementById('display_end').innerHTML = " ]";
-                clearTimeout(timerDisplayID);
-                displayCountdown(tab);
-                
-                if (tab.reloadTime){
-                    displayLastReloadTime(tab);
-                }    
-            } // if
-            else {
-                
-                // hide disable button
-                db.style.display = 'none';
-                
-                // show custom and simple buttons
-                bcustom.style.display = 'inline';
-                bsimple.style.display = 'inline';
+		// prune out list of tabs in case we're here because of a closed tab
+		pruneReloaderTabs();
 
-                // show inactive marker
-                am.style.display = 'none';
-                im.style.display = 'inline-block';
-                
-                // custom delay panel
-                document.getElementById('cust_hours').value     = 0;
-                document.getElementById('cust_minutes').value   = 0;
-                document.getElementById('cust_seconds').value   = 0;
-                
-                resetCustomColors();
-                
-                // last update and countdown display
-                clearTimeout(timerDisplayID);
-                document.getElementById('last_update').innerHTML = "";
-                document.getElementById('next_update').innerHTML = "";
-                document.getElementById('display_begin').innerHTML = "";
-                document.getElementById('display_end').innerHTML = "";
-            } // else
-        } // updateBar
-        
-        function reloadTab (tab) {
-            var currentURL = tab.url;
-                        
-            if (currentURL && tab.reloadEnabled) {
-                tab.url = currentURL;
-                tab.reloadTime = new Date();
-                markTitle(tab);
-            } // if                       
-        } // reloadTab
-        
-        function setDelay(delay,buttonID,custom) {
-            var all_tabs = document.getElementById('apply_all').checked;
-            
-            if (all_tabs) {
-                var tabs = safari.self.browserWindow.tabs;
-                for (var i = 0; i < tabs.length; i++) {
-                    _setDelay(delay,buttonID,custom,tabs[i]);
-                }
-            } // all_tabs
-            else
-                _setDelay(delay,buttonID,custom,safari.self.browserWindow.activeTab);
-        }
-        
-        function _setDelay(delay,buttonID,custom,tab) {
+		// disable tab reloader and return if no URL in tab
+		if (!currentURL) {
+			// disable the menu item and the toolbar button
+			validateMsg.target.disabled = true;
+			hide();
+			return;
+		} // if
+		else validateMsg.target.disabled = false;
 
-            // forget this tab's current settings if they exist
-            if (tab.timerID)
-                _forgetTab(tab);
-            
-            if (custom){
-                tab.customDelay         = {};
-                tab.customDelay.hours   = document.getElementById('cust_hours').value;
-                tab.customDelay.minutes = document.getElementById('cust_minutes').value;
-                tab.customDelay.seconds = document.getElementById('cust_seconds').value;
+		// test for user navigating to a new URL in a reloading tab and disable reloading if so
+		if (_activeTab.reloadEnabled && (currentURL !== _activeTab.originalURL)) disableReloading(_activeTab);
 
-                delay   = (tab.customDelay.seconds * 1000)
-                        + (tab.customDelay.minutes * 1000 * 60)
-                        + (tab.customDelay.hours * 1000 * 60 * 60);
-                        
-                // no zero delays
-                if (delay == 0){
-                    alert("You must set a delay.");
-                    return;
-                }
-            }
-            else {
-                delay = delay * 1000 * 60; // convert to msec {yeah, yeah, aka 60,000}
-            }
-                  
-            resetButtonColors();            
-            tab.buttonID = buttonID;
-            tab.delay = delay;
-            tab.reloadEnabled = true;
-            tab.reloaderTitle = tab.title;
-            tab.originalURL = tab.url;
-            tab.reloadTime = new Date();
-            tab.timerID = setInterval(function() { return reloadTab(tab); },delay);
-            
-            // add to the list of tabs we are paying attention to
-            // solves this bug: https://devforums.apple.com/message/233887
-            reloaderTabs.push(tab);
-                      
-            // hide the bar
-            if (autoHide)
-                hide();
-            else
-                updateBar(tab);
-        } // setDelay
-        
-        function enableReloading (tab) {
-            tab.reloadEnabled = true;
-            tab.reloadTime = new Date();
-            tab.timerID = setInterval(function() { return reloadTab(tab); },tab.delay);
-        }
-        
-        function disableReloading (tab) {
-            tab.reloadEnabled = false;
-            clearInterval(tab.timerID);
-            clearTimeout(timerDisplayID);
-        }
-        
-        function forgetTab (tab) {
-            if (! tab && document.getElementById('apply_all').checked) {
-                var tabs = safari.self.browserWindow.tabs;
-                for (var i = 0; i < tabs.length; i++) {
-                    _forgetTab(tabs[i]);
-                }
-            }
-            else if (! tab) {
-                _forgetTab(safari.self.browserWindow.activeTab);
-            }
-            else
-                _forgetTab(tab);
-        } // forgetTab
-        
-        function _forgetTab (tab) {
-            
-            unmarkTitle(tab);
-            tab.reloadEnabled = false;
-            tab.delay = null;
-            if (tab.customDelay){
-                document.getElementById('cust_hours').value     = 0;
-                document.getElementById('cust_minutes').value   = 0;
-                document.getElementById('cust_seconds').value   = 0;
-                resetCustomColors();
-                delete tab.customDelay;
-            }
-            tab.buttonID = null;
-            tab.originalURL = null;
-            tab.reloaderTitle = null;
-            clearInterval(tab.timerID);
-            clearTimeout(timerDisplayID);
-            tab.timerID = null;
-            pruneReloaderTabs();
+		// test for navigating back to a reloading URL from somewhere else and re-enable
+		if ((!_activeTab.reloadEnabled) && (currentURL == _activeTab.originalURL)) enableReloading(_activeTab);
 
-            // hide the bar
-            if (autoHide)
-                hide();
-            else
-                updateBar(tab);
-        } // _forgetTab
-        
-        function hide() {
-            // hide the bar
-            safari.self.hide();
-        } // hide
-        
-        function resetButtonColors () {
-            var greenButtons = document.getElementsByClassName('sexygreen');
-            
-            if (greenButtons) {
-                for (i=0;i<greenButtons.length;i++)
-                    greenButtons[i].className = "sexybutton sexysimple sexysmall";
-            }
-        }
-        
-        function resetCustomColors(){
-            if (document.getElementById('cust_hours').value != 0)
-                document.getElementById('cust_hours').className = "green";
-            else
-                document.getElementById('cust_hours').className = "black";
-            
-            if (document.getElementById('cust_minutes').value != 0)
-                document.getElementById('cust_minutes').className = "green";
-            else
-                document.getElementById('cust_minutes').className = "black";
-            
-            if (document.getElementById('cust_seconds').value != 0)
-                document.getElementById('cust_seconds').className = "green";
-            else
-                document.getElementById('cust_seconds').className = "black";
-        }
-        
-        function showDelay(div){
-            var showDiv = document.getElementById(div);
-            var hideDiv;
-            
-            if (div === "simple_delay")
-                hideDiv = document.getElementById("custom_delay");
-            else
-                hideDiv = document.getElementById("simple_delay");
-                
-            hideDiv.style.display  = "none";
-            showDiv.style.display  = "inline-block"; 
-            showDiv.style.position = "relative"; 
-            showDiv.style.bottom   = "4px"; 
-        }
+		// update bar if necessary
+		if (safari.self.visible) updateBar(_activeTab);
+		break;
+	} // switch
+} // handleValidate
 
+function markTitle(tab) {
+  var title = tab.title;
+	if (title.substr(0, 2) !== marker) {
+	  title = marker + title;
+	}
+	tab.page.dispatchMessage("setTitle", title);
+}
 
-    </script>
+function unmarkTitle(tab) {
+  var title = tab.title;
+	if (title.substr(0, 2) == marker) {
+	  title = title.substr(2, title.length);
+	  tab.page.dispatchMessage("setTitle", title);
+	}
+}
+
+function displayLastReloadTime(tab) {
+	var lastHours = tab.reloadTime.getHours();
+	var lastMinutes = tab.reloadTime.getMinutes();
+	var lastSeconds = tab.reloadTime.getSeconds();
+	var lastAorP;
+
+	if (lastHours >= 12) lastAorP = "pm";
+	else lastAorP = "am";
+
+	if (lastHours >= 13) lastHours -= 12;
+
+	if (lastMinutes < 10) lastMinutes = "0" + lastMinutes;
+
+	if (lastSeconds < 10) lastSeconds = "0" + lastSeconds;
+
+	var lastUpdate = lastHours + ":" + lastMinutes + ":" + lastSeconds + " " + lastAorP + " &nbsp;&nbsp;|&nbsp;&nbsp;";
+
+	document.getElementById('last_update').innerHTML = lastUpdate;
+}
+
+function displayCountdown(tab) {
+	var reloadTime = tab.reloadTime;
+	if (!reloadTime) reloadTime = new Date();
+
+	var nextReload = new Date();
+
+	nextReload.setTime(reloadTime.getTime() + tab.delay);
+
+	var now = new Date();
+
+	timeLeft = nextReload.getTime() - now.getTime();
+
+	delete nextReload;
+	delete reloadTime;
+	delete now;
+
+	days = 0;
+	hours = 0;
+	mins = 0;
+	secs = 0;
+
+	timeLeft = Math.floor(timeLeft / 1000); //kill the "milliseconds" so just secs
+	days = Math.floor(timeLeft / 86400); //days
+	timeLeft = timeLeft % 86400;
+	hours = Math.floor(timeLeft / 3600); //hours
+	timeLeft = timeLeft % 3600;
+	mins = Math.floor(timeLeft / 60); //minutes
+	timeLeft = timeLeft % 60;
+	secs = Math.floor(timeLeft); //seconds
+	if (hours >= 13) hours -= 12;
+
+	if (hours < 10) hours = "0" + hours;
+
+	if (mins < 10) mins = "0" + mins;
+
+	if (secs < 10) secs = "0" + secs;
+
+	var nextUpdate = hours + ":" + mins + ":" + secs;
+
+	document.getElementById('next_update').innerHTML = nextUpdate;
+
+	timerDisplayID = setTimeout(function() {
+		return displayCountdown(tab);
+	},
+	1000);
+}
+
+function updateBar(tab) {
+	var db = document.getElementById('disable_button');
+	var hb = document.getElementById('hide_button');
+	var am = document.getElementById('rt_active');
+	var im = document.getElementById('rt_inactive');
+	var cd = document.getElementById(tab.buttonID);
+	var bcustom = document.getElementById('bcustom');
+	var bsimple = document.getElementById('bsimple');
+
+	resetButtonColors();
+
+	// always uncheck the all tabs checkbox
+	document.getElementById('apply_all').checked = false;
+
+	if (tab.reloadEnabled) {
+
+		// show disable button
+		db.style.display = 'inline-block';
+
+		// hide simple and custom buttons
+		bcustom.style.display = 'none';
+		bsimple.style.display = 'none';
+
+		// show active marker
+		am.style.display = 'inline-block';
+		im.style.display = 'none';
+
+		// custom delay panel
+		if (!tab.customDelay) {
+			showDelay('simple_delay');
+
+			// current delay green button
+			if (cd) cd.className = "sexybutton sexysimple sexysmall sexygreen";
+		} else {
+			showDelay('custom_delay');
+
+			// values
+			document.getElementById('cust_hours').value = tab.customDelay.hours;
+			document.getElementById('cust_minutes').value = tab.customDelay.minutes;
+			document.getElementById('cust_seconds').value = tab.customDelay.seconds;
+
+			resetCustomColors();
+		}
+
+		// last update and countdown display
+		document.getElementById('display_begin').innerHTML = "[ ";
+		document.getElementById('display_end').innerHTML = " ]";
+		clearTimeout(timerDisplayID);
+		displayCountdown(tab);
+
+		if (tab.reloadTime) {
+			displayLastReloadTime(tab);
+		}
+	} // if
+	else {
+
+		// hide disable button
+		db.style.display = 'none';
+
+		// show custom and simple buttons
+		bcustom.style.display = 'inline';
+		bsimple.style.display = 'inline';
+
+		// show inactive marker
+		am.style.display = 'none';
+		im.style.display = 'inline-block';
+
+		// custom delay panel
+		document.getElementById('cust_hours').value = 0;
+		document.getElementById('cust_minutes').value = 0;
+		document.getElementById('cust_seconds').value = 0;
+
+		resetCustomColors();
+
+		// last update and countdown display
+		clearTimeout(timerDisplayID);
+		document.getElementById('last_update').innerHTML = "";
+		document.getElementById('next_update').innerHTML = "";
+		document.getElementById('display_begin').innerHTML = "";
+		document.getElementById('display_end').innerHTML = "";
+	} // else
+} // updateBar
+
+function reloadTab(tab) {
+	if (tab.url && tab.reloadEnabled) {
+		tab.page.dispatchMessage("reload");
+		tab.reloadTime = new Date();
+	} // if                       
+} // reloadTab
+
+function setDelay(delay, buttonID, custom) {
+	var all_tabs = document.getElementById('apply_all').checked;
+
+	if (all_tabs) {
+		var tabs = safari.self.browserWindow.tabs;
+		for (var i = 0; i < tabs.length; i++) {
+			_setDelay(delay, buttonID, custom, tabs[i]);
+		}
+	} // all_tabs
+	else _setDelay(delay, buttonID, custom, safari.self.browserWindow.activeTab);
+}
+
+function _setDelay(delay, buttonID, custom, tab) {
+
+	// forget this tab's current settings if they exist
+	if (tab.timerID) _forgetTab(tab);
+
+	if (custom) {
+		tab.customDelay = {};
+		tab.customDelay.hours = document.getElementById('cust_hours').value;
+		tab.customDelay.minutes = document.getElementById('cust_minutes').value;
+		tab.customDelay.seconds = document.getElementById('cust_seconds').value;
+
+		delay = (tab.customDelay.seconds * 1000) + (tab.customDelay.minutes * 1000 * 60) + (tab.customDelay.hours * 1000 * 60 * 60);
+
+		// no zero delays
+		if (delay == 0) {
+			alert("You must set a delay.");
+			return;
+		}
+	} else {
+		delay = delay * 1000 * 60; // convert to msec {yeah, yeah, aka 60,000}
+	}
+
+	resetButtonColors();
+	tab.buttonID = buttonID;
+	tab.delay = delay;
+	tab.reloadEnabled = true;
+	tab.originalURL = tab.url;
+	tab.reloadTime = new Date();
+	tab.timerID = setInterval(function() {
+		return reloadTab(tab);
+	},
+	delay);
+
+	// add to the list of tabs we are paying attention to
+	// solves this bug: https://devforums.apple.com/message/233887
+	reloaderTabs.push(tab);
+
+	// hide the bar
+	if (autoHide) hide();
+	else updateBar(tab);
+} // setDelay
+
+function enableReloading(tab) {
+	tab.reloadEnabled = true;
+	tab.reloadTime = new Date();
+	tab.timerID = setInterval(function() {
+		return reloadTab(tab);
+	},
+	tab.delay);
+}
+
+function disableReloading(tab) {
+	tab.reloadEnabled = false;
+	clearInterval(tab.timerID);
+	clearTimeout(timerDisplayID);
+}
+
+function forgetTab(tab) {
+	if (!tab && document.getElementById('apply_all').checked) {
+		var tabs = safari.self.browserWindow.tabs;
+		for (var i = 0; i < tabs.length; i++) {
+			_forgetTab(tabs[i]);
+		}
+	} else if (!tab) {
+		_forgetTab(safari.self.browserWindow.activeTab);
+	} else _forgetTab(tab);
+} // forgetTab
+
+function _forgetTab(tab) {
+	unmarkTitle(tab);
+	tab.reloadEnabled = false;
+	tab.delay = null;
+	if (tab.customDelay) {
+		document.getElementById('cust_hours').value = 0;
+		document.getElementById('cust_minutes').value = 0;
+		document.getElementById('cust_seconds').value = 0;
+		resetCustomColors();
+		delete tab.customDelay;
+	}
+	tab.scrollPos = null;
+	tab.buttonID = null;
+	tab.originalURL = null;
+	clearInterval(tab.timerID);
+	clearTimeout(timerDisplayID);
+	tab.timerID = null;
+	pruneReloaderTabs();
+
+	// hide the bar
+	if (autoHide) hide();
+	else updateBar(tab);
+} // _forgetTab
+
+function hide() {
+	// hide the bar
+	safari.self.hide();
+} // hide
+
+function resetButtonColors() {
+	var greenButtons = document.getElementsByClassName('sexygreen');
+
+	if (greenButtons) {
+		for (i = 0; i < greenButtons.length; i++)
+		greenButtons[i].className = "sexybutton sexysimple sexysmall";
+	}
+}
+
+function resetCustomColors() {
+	if (document.getElementById('cust_hours').value != 0) document.getElementById('cust_hours').className = "green";
+	else document.getElementById('cust_hours').className = "black";
+
+	if (document.getElementById('cust_minutes').value != 0) document.getElementById('cust_minutes').className = "green";
+	else document.getElementById('cust_minutes').className = "black";
+
+	if (document.getElementById('cust_seconds').value != 0) document.getElementById('cust_seconds').className = "green";
+	else document.getElementById('cust_seconds').className = "black";
+}
+
+function showDelay(div) {
+	var showDiv = document.getElementById(div);
+	var hideDiv;
+
+	if (div === "simple_delay") hideDiv = document.getElementById("custom_delay");
+	else hideDiv = document.getElementById("simple_delay");
+
+	hideDiv.style.display = "none";
+	showDiv.style.display = "inline-block";
+	showDiv.style.position = "relative";
+	showDiv.style.bottom = "4px";
+}
+
+</script>
+
 </head>
 <body> 
     <div id="content" >
