@@ -74,7 +74,7 @@ function handleValidate(validateMsg) {
 	switch (validateMsg.command) {
 	case "toggle_from_button":
 		_activeTab = safari.self.browserWindow.activeTab;
-		var currentURL = _activeTab.url.replace(/.scroll=\d+/g, '');
+		var currentURL = _activeTab.url.replace(/.str_.scroll=\d+/g, '');
 
 		// set active tab as being read
 		if (_activeTab.reloadEnabled) {
@@ -369,7 +369,6 @@ function _forgetTab(tab) {
 		resetCustomColors();
 		delete tab.customDelay;
 	}
-	tab.scrollPos = null;
 	tab.buttonID = null;
 	tab.originalURL = null;
 	clearInterval(tab.timerID);
