@@ -37,12 +37,14 @@ function pruneReloaderTabs() {
 function handleMessage(msg) {
 	var tab = msg.target;
 	switch (msg.name) {
-	case "getTitle":
-	  if (tab.reloadEnabled){
-	    if (tab === safari.self.browserWindow.activeTab) unmarkTitle(tab);
-  	  else markTitle(tab);
-	  }
-		break;
+	
+	case "scrollPosition":
+	  tab.scrollPosition = msg.message;
+    break;
+  
+  case "getParams":
+    setParams(tab);
+    break;
 	} // switch
 } //handleMessage
 
@@ -110,7 +112,7 @@ function markTitle(tab) {
 	if (title.substr(0, 2) !== marker) {
 	  title = marker + title;
 	}
-	tab.page.dispatchMessage("setTitle", title);
+	return title;
 }
 
 function unmarkTitle(tab) {
@@ -273,10 +275,26 @@ function updateBar(tab) {
 
 function reloadTab(tab) {
 	if (tab.url && tab.reloadEnabled) {
-		tab.page.dispatchMessage("reload");
+	  tab.page.dispatchMessage("reload");
 		tab.reloadTime = new Date();
 	} // if                       
 } // reloadTab
+
+function setParams(tab) {
+  if (tab.url && tab.reloadEnabled) {
+    var windowParams = {};
+    _activeTab = safari.self.browserWindow.activeTab;
+  
+    if (tab !== _activeTab)
+      windowParams.title = markTitle(tab);
+    else
+      windowParams.title = tab.title;
+
+    windowParams.scrollPosition = tab.scrollPosition;      
+  	tab.page.dispatchMessage("setParams",windowParams);
+  	delete tab.scrollPosition;
+  }
+}
 
 function setDelay(delay, buttonID, custom) {
 	var all_tabs = document.getElementById('apply_all').checked;

@@ -9,10 +9,14 @@ function handleMessage(msgEvent) {
 	case "setTitle":
 		document.title = msgEvent.message;
 		break;
-
+		
+	case "setParams":
+	  setParams(msgEvent.message);
+	  break;
+	  
 	case "reload":
-		reloadMe();
-		break;
+	  reloadMe();
+	  break;
 
 	} // switch
 } // handleMessage
@@ -20,30 +24,28 @@ function handleMessage(msgEvent) {
 function reloadMe() {
 	var vscroll = window.pageYOffset;
 	var hscroll = window.pageXOffset;
-	var myURL = location.href;
-	var q = '';
-
-	// get rid of existing scroll in url
-	myURL = myURL.replace(/.str_.scroll=\d+/g, '');
-
+	var scrollPosition = {};
+	
+	// store scroll position in extension
 	if (vscroll != 0 || hscroll != 0) {
-		if (myURL.indexOf('?') == -1) q = '?';
-		else q = '&';
-		myURL += q + "str_vscroll=" + vscroll.toString() + "&str_hscroll=" + hscroll.toString();
+	  scrollPosition.vscroll = vscroll;
+	  scrollPosition.hscroll = hscroll;
+	  safari.self.tab.dispatchMessage("scrollPosition",scrollPosition);
 	}
-	location.href = myURL;
+	// reload the page
+	location.href = location.href;
 }
 
 function _reloadMe() {
-	// parse URL and reload to scroll parameters
-	var search = window.location.search;
-	// if query string exists  
-	if (search) {
-		// find scroll parameters in query string  
-		var vscroll = /str_vscroll=(\d+)/.exec(search);
-		var hscroll = /str_hscroll=(\d+)/.exec(search);
-		// jump to the scroll position if scroll parameter exists  
-		if (vscroll || hscroll) window.scrollTo(hscroll[1], vscroll[1]);
-	}
-	safari.self.tab.dispatchMessage("getTitle");
+  safari.self.tab.dispatchMessage("getParams");
+}
+
+function setParams(windowParams) {
+  // set title
+	if (windowParams.title)
+	  document.title = windowParams.title;
+	
+	// scroll if necessary
+	if (windowParams.scrollPosition)
+	  window.scrollTo(windowParams.scrollPosition.hscroll,windowParams.scrollPosition.vscroll);
 }
