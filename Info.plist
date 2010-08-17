@@ -11,9 +11,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.4</string>
+	<string>1.4.1</string>
 	<key>CFBundleVersion</key>
-	<string>57</string>
+	<string>59</string>
 	<key>Chrome</key>
 	<dict>
 		<key>Bars</key>
@@ -72,7 +72,7 @@
 		</dict>
 	</dict>
 	<key>Update Manifest URL</key>
-	<string>http://pjv.sofasage.com/reloader/safari-extensions-manifest.plist</string>
+	<string>http://bit.ly/9qnPf2</string>
 	<key>Website</key>
 	<string>http://pjv.sofasage.com/reloader</string>
 </dict>
