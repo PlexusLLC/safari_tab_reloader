@@ -1,7 +1,7 @@
 if (window === window.top) {
 	safari.self.addEventListener("message", handleMessage, false);
 	window.addEventListener("load", init, false);
-	dirty = false;
+	var dirty = false;
 	var sheet = null;
 }
 
@@ -23,28 +23,39 @@ function handleMessage(msgEvent) {
 	} // switch
 } // handleMessage
 
-function reloadMe() {
-	if (window.dirty){
+function reloadMe() {  
+	if (dirty){
 	  // create sheet if necessary
-	  if (!sheet){
-	    var sheet_html = document.createElement("iframe");
-	    sheet_html.innerHTML = "class='str_sheet slide_down' src=" + safari.extension.baseURI + "sheet.html>";
-	    
-	    sheet = document.createElement("div");
-	    document.body.insertBefore(sheet, document.body.firstChild);
-	    //sheet.innerHTML = "<iframe class='str_sheet slide_down' src=" + safari.extension.baseURI + "sheet.html></iframe>";
-	    sheet.innerHTML = sheet_html.innerHTML;
-	    sheet.style.width = '100%';
-	    sheet.style.position = 'fixed';
-	    sheet.style.zIndex = '100000000';
-	    sheet.id = 'sheet';
-	    sheet.style.display = 'block';
+	  if (! sheet){	    
+	    // create the link elements sheet.css, sheet.js, sexybuttons
+	    var headID = document.getElementsByTagName("head")[0];  
+	           
+      var cssNode = document.createElement('link');
+      cssNode.type = 'text/css';
+      cssNode.rel = 'stylesheet';
+      cssNode.href = safari.extension.baseURI + 'sheet.css';
+      cssNode.media = 'screen';
+      headID.appendChild(cssNode);
+      
+      cssNode = document.createElement('link');
+      cssNode.type = 'text/css';
+      cssNode.rel = 'stylesheet';
+      cssNode.href = safari.extension.baseURI + 'sexybuttons.css';
+      cssNode.media = 'screen';
+      headID.appendChild(cssNode);
+      
+      sheet = document.createElement("div");
+      sheet.innerHTML =
+      "<span style='color: #ffb515;' class='str_marker str_pulsed'>&diams;</span>&nbsp;\
+      <span class='str_sheet_text'>Reloading is paused because you have changed something on the page.</span>&nbsp;&nbsp;&nbsp;\
+      <button id='b_enable' class='sexybutton sexysimple sexysmall sexygreen' onclick='enable_reloading()'>Re-enable</button>&nbsp;\
+      <button id='b_disable' class='sexybutton sexysimple sexysmall sexyred' onclick='disable_reloading()'>Disable</button>&nbsp;\
+      <button id='b_hide' class='sexybutton sexysimple sexysmall' onclick='safari.extension.hide_sheet()'>Hide</button>";
+      sheet.id = 'str_sheet';
+      sheet.style.display = 'none';
+      document.body.insertBefore(sheet, document.body.firstChild);
 	  }
-	  
-	  // display sheet if necessary
-	  if (!sheet.style.display == 'block')
-	    sheet.style.display = 'block';
-	  
+	  showSheet();
 	  return; // so we don't reload
 	}
 	
@@ -62,13 +73,31 @@ function reloadMe() {
 	location.href = location.href;
 }
 
-function setDirty () {
-  dirty = true;
-  console.log("dirty is " + dirty);
+function showSheet() {
+  if (sheet && (sheet.style.display !== 'block')){
+    sheet.className = "str_sheet slide_down";
+    sheet.style.display = 'block';
+  }
 }
 
-function enable () {
-  console.log("yes");
+function hide_sheet() {
+  dirty = false;
+  if (sheet && (sheet.style.display !== 'none')){
+    sheet.className = "str_sheet slide_up";
+    sheet.style.display = 'none';
+  }
+}
+
+function enable_reloading() {
+  // body...
+}
+
+function disable_reloading() {
+  // body...
+}
+
+function setDirty () {
+  dirty = true;
 }
 
 function init() {
@@ -79,7 +108,6 @@ function init() {
   for (var i=0; i<document.forms.length; i++){
     if (document.forms[i].length){
       for (var j=0; j<document.forms[i].length; j++){
-        // document.forms[i][j].onChange = function () {dirty = true;};
         document.forms[i][j].addEventListener("change",setDirty,false);
       } // for
     } // if
