@@ -56,10 +56,6 @@
 				<string>injected.js</string>
 			</array>
 		</dict>
-		<key>Stylesheets</key>
-		<array>
-			<string>sheet.css</string>
-		</array>
 	</dict>
 	<key>Description</key>
 	<string>Independently timed, automatic reloading of Safari tabs.</string>

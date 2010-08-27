@@ -45,6 +45,11 @@ function handleMessage(msg) {
   case "getParams":
     setParams(tab);
     break;
+    
+  case "dirty":
+    if (tab.reloadEnabled && (!tab.paused))
+      pauseReloading(tab);
+    break;    
 	} // switch
 } //handleMessage
 
@@ -195,6 +200,7 @@ function updateBar(tab) {
 	var hb = document.getElementById('hide_button');
 	var am = document.getElementById('rt_active');
 	var im = document.getElementById('rt_inactive');
+	var pm = document.getElementById('rt_paused');
 	var cd = document.getElementById(tab.buttonID);
 	var bcustom = document.getElementById('bcustom');
 	var bsimple = document.getElementById('bsimple');
@@ -204,7 +210,40 @@ function updateBar(tab) {
 	// always uncheck the all tabs checkbox
 	document.getElementById('apply_all').checked = false;
 
-	if (tab.reloadEnabled) {
+  if (tab.paused){
+    
+    // hide standard disable button
+    db.style.display = 'none';
+    
+    // hide simple and custom buttons
+		bcustom.style.display = 'none';
+		bsimple.style.display = 'none';
+		
+		// show paused marker
+		am.style.display = 'none';
+		pm.style.display = 'inline-block';
+		im.style.display = 'none';
+		
+		// hide simple and custom divs
+		document.getElementById('simple_delay').style.display = 'none';
+		document.getElementById('custom_delay').style.display = 'none';
+		document.getElementById('reload_text').style.display = 'none';
+		
+		// show paused div
+		document.getElementById('pause').style.position = 'relative';
+		document.getElementById('pause').style.bottom = '1px';
+		document.getElementById('pause').style.display = 'inline-block';
+		
+		// last update and countdown display
+		clearTimeout(timerDisplayID);
+		document.getElementById('last_update').innerHTML = "";
+		document.getElementById('next_update').innerHTML = "";
+		document.getElementById('display_begin').innerHTML = "";
+		document.getElementById('display_end').innerHTML = "";
+		
+  } // if paused
+  
+	else if (tab.reloadEnabled) {
 
 		// show disable button
 		db.style.display = 'inline-block';
@@ -216,6 +255,15 @@ function updateBar(tab) {
 		// show active marker
 		am.style.display = 'inline-block';
 		im.style.display = 'none';
+		pm.style.display = 'none';
+		
+		// standard reload text
+		document.getElementById('reload_text').style.display = 'inline-block';
+		document.getElementById('reload_text').style.bottom = '1px';
+		document.getElementById('reload_text').style.position = 'relative';
+		
+		// hide paused
+		document.getElementById('pause').style.display = 'none';
 
 		// custom delay panel
 		if (!tab.customDelay) {
@@ -243,7 +291,7 @@ function updateBar(tab) {
 		if (tab.reloadTime) {
 			displayLastReloadTime(tab);
 		}
-	} // if
+	} // if reloadEnabled
 	else {
 
 		// hide disable button
@@ -255,7 +303,17 @@ function updateBar(tab) {
 
 		// show inactive marker
 		am.style.display = 'none';
+		pm.style.display = 'none';
 		im.style.display = 'inline-block';
+		
+		// hide paused
+		document.getElementById('pause').style.display = 'none';
+		
+		// show simple display
+		document.getElementById('reload_text').style.display = 'inline-block';
+		document.getElementById('reload_text').style.bottom = '1px';
+		document.getElementById('reload_text').style.position = 'relative';
+		showDelay('simple_delay');
 
 		// custom delay panel
 		document.getElementById('cust_hours').value = 0;
@@ -274,6 +332,7 @@ function updateBar(tab) {
 } // updateBar
 
 function reloadTab(tab) {
+	if (tab.paused) return;
 	if (tab.url && tab.reloadEnabled) {
 	  tab.page.dispatchMessage("reload");
 		tab.reloadTime = new Date();
@@ -365,6 +424,20 @@ function disableReloading(tab) {
 	clearTimeout(timerDisplayID);
 }
 
+function pauseReloading (tab) {
+  tab.paused = true;
+  clearTimeout(timerDisplayID);
+  updateBar(tab);
+  safari.self.show();
+}
+
+function reEnable() {
+  var tab = safari.self.browserWindow.activeTab;
+  tab.paused = false;
+  displayCountdown(tab);
+  updateBar(tab);
+}
+
 function forgetTab(tab) {
 	if (!tab && document.getElementById('apply_all').checked) {
 		var tabs = safari.self.browserWindow.tabs;
@@ -379,6 +452,7 @@ function forgetTab(tab) {
 function _forgetTab(tab) {
 	unmarkTitle(tab);
 	tab.reloadEnabled = false;
+	tab.paused = null;
 	tab.delay = null;
 	if (tab.customDelay) {
 		document.getElementById('cust_hours').value = 0;
@@ -394,9 +468,10 @@ function _forgetTab(tab) {
 	tab.timerID = null;
 	pruneReloaderTabs();
 
-	// hide the bar
+	// update the bar
 	if (autoHide) hide();
 	else updateBar(tab);
+	
 } // _forgetTab
 
 function hide() {
@@ -408,10 +483,12 @@ function resetButtonColors() {
 	var greenButtons = document.getElementsByClassName('sexygreen');
 
 	if (greenButtons) {
-		for (i = 0; i < greenButtons.length; i++)
-		greenButtons[i].className = "sexybutton sexysimple sexysmall";
-	}
-}
+		for (i = 0; i < greenButtons.length; i++){
+		  if (greenButtons[i].id !== "b_reEnable")
+		    greenButtons[i].className = "sexybutton sexysimple sexysmall";
+		} // for
+	} // if
+} // resetButtonColors
 
 function resetCustomColors() {
 	if (document.getElementById('cust_hours').value != 0) document.getElementById('cust_hours').className = "green";
@@ -443,20 +520,30 @@ function showDelay(div) {
 <body> 
     <div id="content" >
         <div style="display: inline-block; position: relative; bottom: 1px;">
-            <span id="rt_active" style="color: #59a901;" class="marker pulsed">&diams;</span>
-            <span id="rt_inactive" style="color: #a90118;" class="marker">&diams;</span>
-            <span style="color: #ff8a00" title="Apply to all tabs in window"> <input type="checkbox" id="apply_all" /><label for="apply_all">All tabs</label> </span>&nbsp;&nbsp;Reload Every: 
+          <span id="rt_active" style="color: #59a901;" class="marker pulsed">&diams;</span>
+          <span id="rt_inactive" style="color: #a90118;" class="marker">&diams;</span>
+          <span id="rt_paused" style="color: #ffb515;" class="marker pulsed">&diams;</span>            
+        </div>
+        <div id="reload_text"  style="display: inline-block; position: relative; bottom: 1px;">
+          <span style="color: #ff8a00" title="Apply to all tabs in window"> <input type="checkbox" id="apply_all" /><label for="apply_all">All tabs</label> </span>&nbsp;&nbsp;Reload Every: 
+        </div>
+        <div id="pause"  style="display: none;">
+          Reloading is paused because you have changed something on the page.&nbsp;&nbsp;
+          <div style="display: inline-block; position: relative; bottom: 3px;">
+            <button id="b_reEnable" class='sexybutton sexysimple sexysmall sexygreen' onclick="reEnable()">Re-enable</button>
+            <button class="sexybutton sexysimple sexysmall sexyred" onclick="forgetTab()">Disable</button>
+          </div>
         </div>
         <div id="simple_delay" style="display: inline-block; position: relative; bottom: 4px">
-            <button id="b1" class="sexybutton sexysimple sexysmall" onclick="setDelay(.5,'b1',false)">30 sec</button>
-            <button id="b2" class="sexybutton sexysimple sexysmall" onclick="setDelay(1,'b2',false)">1 min</button>
-            <button id="b3" class="sexybutton sexysimple sexysmall" onclick="setDelay(2,'b3',false)">2 min</button>
-            <button id="b4" class="sexybutton sexysimple sexysmall" onclick="setDelay(5,'b4',false)">5 min</button>
-            <button id="b5" class="sexybutton sexysimple sexysmall" onclick="setDelay(15,'b5',false)">15 min</button>
-            <button id="b6" class="sexybutton sexysimple sexysmall" onclick="setDelay(30,'b6',false)">30 min</button>
-            <button id="b7" class="sexybutton sexysimple sexysmall" onclick="setDelay(60,'b7',false)">60 min</button>
-            &nbsp;&nbsp;
-            <button id="bcustom" class="sexybutton sexysimple sexysmall sexyorange" onclick="showDelay('custom_delay')">Custom</button>
+          <button id="b1" class="sexybutton sexysimple sexysmall" onclick="setDelay(.5,'b1',false)">30 sec</button>
+          <button id="b2" class="sexybutton sexysimple sexysmall" onclick="setDelay(1,'b2',false)">1 min</button>
+          <button id="b3" class="sexybutton sexysimple sexysmall" onclick="setDelay(2,'b3',false)">2 min</button>
+          <button id="b4" class="sexybutton sexysimple sexysmall" onclick="setDelay(5,'b4',false)">5 min</button>
+          <button id="b5" class="sexybutton sexysimple sexysmall" onclick="setDelay(15,'b5',false)">15 min</button>
+          <button id="b6" class="sexybutton sexysimple sexysmall" onclick="setDelay(30,'b6',false)">30 min</button>
+          <button id="b7" class="sexybutton sexysimple sexysmall" onclick="setDelay(60,'b7',false)">60 min</button>
+          &nbsp;&nbsp;
+          <button id="bcustom" class="sexybutton sexysimple sexysmall sexyorange" onclick="showDelay('custom_delay')">Custom</button>
         </div> <!--id="simple_delay" -->
         <div id="custom_delay" style="display: none">
             <select name="cust_hours" id="cust_hours">
