@@ -434,6 +434,7 @@ function pauseReloading (tab) {
 function reEnable() {
   var tab = safari.self.browserWindow.activeTab;
   tab.paused = false;
+  if (autoHide) hide();
   displayCountdown(tab);
   updateBar(tab);
 }
