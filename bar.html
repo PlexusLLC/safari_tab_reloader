@@ -78,10 +78,12 @@ function handleCommand(commandMsg) {
 } //handleCommand
 
 function handleValidate(validateMsg) {
+  var currentURL = null;
 	switch (validateMsg.command) {
 	case "toggle_from_button":
 		_activeTab = safari.self.browserWindow.activeTab;
-		var currentURL = _activeTab.url.replace(/.str_.scroll=\d+/g, '');
+		if (_activeTab)
+		  currentURL = _activeTab.url;
 
 		// set active tab as being read
 		if (_activeTab.reloadEnabled) {
