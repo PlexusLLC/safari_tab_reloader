@@ -78,7 +78,7 @@ function handleCommand(commandMsg) {
 } //handleCommand
 
 function handleValidate(validateMsg) {
-  var currentURL = null;
+	var currentURL = null;
 	switch (validateMsg.command) {
 	case "toggle_from_button":
 		_activeTab = safari.self.browserWindow.activeTab;
@@ -428,7 +428,6 @@ function disableReloading(tab) {
 
 function pauseReloading (tab) {
   tab.paused = true;
-  clearTimeout(timerDisplayID);
   updateBar(tab);
   safari.self.show();
 }
@@ -437,6 +436,7 @@ function reEnable() {
   var tab = safari.self.browserWindow.activeTab;
   tab.paused = false;
   if (autoHide) hide();
+	tab.reloadTime = new Date();
   displayCountdown(tab);
   updateBar(tab);
 }
