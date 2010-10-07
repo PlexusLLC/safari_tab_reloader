@@ -427,18 +427,24 @@ function disableReloading(tab) {
 }
 
 function pauseReloading (tab) {
-  tab.paused = true;
-  updateBar(tab);
-  safari.self.show();
+	tab.paused = true;
+	clearInterval(tab.timerID);
+	clearTimeout(timerDisplayID);
+	updateBar(tab);
+	safari.self.show();
 }
 
 function reEnable() {
-  var tab = safari.self.browserWindow.activeTab;
-  tab.paused = false;
-  if (autoHide) hide();
+	var tab = safari.self.browserWindow.activeTab;
+	tab.paused = false;
+	if (autoHide) hide();
 	tab.reloadTime = new Date();
-  displayCountdown(tab);
-  updateBar(tab);
+	tab.timerID = setInterval(function() {
+		return reloadTab(tab);
+	},
+	tab.delay);
+	//displayCountdown(tab);
+	updateBar(tab);
 }
 
 function forgetTab(tab) {
